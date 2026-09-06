@@ -194,12 +194,271 @@ function getHistoricalEvents(){return [{id:'sez1980',year:1980,name:'设立经�
 function triggerHistoricalEvent(id){var events=getHistoricalEvents();var e=events.find(function(ev){return ev.id===id;});if(!e||G.triggeredEvents.includes(id))return;G.triggeredEvents.push(id);addLog('事件',''+e.year+'年 '+e.name+'：'+e.desc,'event');if(id==='sez1980'||id==='南巡1992'){G.satisfaction=Math.min(1,G.satisfaction+0.05);G.politicalReputation=Math.min(100,G.politicalReputation+5);}if(id==='wto2001'){G.gdp=Math.round(G.gdp*1.2);G.politicalReputation=Math.min(100,G.politicalReputation+8);}if(id==='pandemic2020'){G.satisfaction=Math.max(0,G.satisfaction-0.1);G.finance=Math.round(G.finance*0.9);}if(id==='tax2006'||id==='commone2021'){G.satisfaction=Math.min(1,G.satisfaction+0.08);}renderGovModal();renderAll();}
 function renderGovTab(){var subTabs=[{id:'personnel',name:'人事'},{id:'project',name:'工程'},{id:'business',name:'工商'},{id:'apply',name:'申报'},{id:'power',name:'权力'}];var html='<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">';subTabs.forEach(function(t){html+='<button onclick="switchGovSubTab(\''+t.id+'\')" style="padding:6px 14px;border:1px solid '+(govSubTab===t.id?'#2563eb':'#d1d5db')+';background:'+(govSubTab===t.id?'#2563eb':'#fff')+';color:'+(govSubTab===t.id?'#fff':'#374151')+';border-radius:6px;font-size:13px;cursor:pointer;">'+t.name+'</button>';});html+='</div>';if(govSubTab==='personnel')html+=renderPersonnelTab();else if(govSubTab==='project')html+=renderProjectTab();else if(govSubTab==='business')html+=renderBusinessTab();else if(govSubTab==='power')html+=renderPowerTab();else if(govSubTab==='apply')html+=renderApplyTab();else html+='<div style="padding:20px;text-align:center;color:#9ca3af;font-size:14px;">该模块功能开发中...</div>';return html;}
 function switchGovSubTab(tab){govSubTab=tab;renderGovModal();}
-// 以下为简化的干部、工程、工商、权力、申报等模块（因篇幅限制，仅保留占位）
-function renderPersonnelTab(){return '<div style="padding:20px;text-align:center;color:#9ca3af;">人事模块（功能完整，因篇幅省略显示）</div>';}
-function renderProjectTab(){return '<div style="padding:20px;text-align:center;color:#9ca3af;">工程模块（功能完整，因篇幅省略显示）</div>';}
-function renderBusinessTab(){return '<div style="padding:20px;text-align:center;color:#9ca3af;">工商模块（功能完整，因篇幅省略显示）</div>';}
-function renderPowerTab(){return '<div style="padding:20px;text-align:center;color:#9ca3af;">权力模块（功能完整，因篇幅省略显示）</div>';}
-function renderApplyTab(){return '<div style="padding:20px;text-align:center;color:#9ca3af;">申报模块（功能完整，因篇幅省略显示）</div>';}
+// ===== 政务五大模块完整UI =====
+function renderPersonnelTab(){
+  if(!G.cadres||G.cadres.length===0)return '<div style="padding:20px;text-align:center;color:#9ca3af;">暂无干部数据</div>';
+  var html='';
+  var avgAbility=Math.round(G.cadres.reduce(function(s,c){return s+(c.ability||0);},0)/G.cadres.length);
+  var avgInteg=Math.round(G.cadres.reduce(function(s,c){return s+(c.integrity||0);},0)/G.cadres.length);
+  var rankCount={};
+  G.cadres.forEach(function(c){rankCount[c.rank]=(rankCount[c.rank]||0)+1;});
+  var perfCount={};
+  G.cadres.forEach(function(c){perfCount[c.performance]=(perfCount[c.performance]||0)+1;});
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#2563eb;">'+G.cadres.length+'</div><div style="font-size:11px;color:#6b7280;">在编干部</div></div>';
+  html+='<div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#16a34a;">'+avgAbility+'</div><div style="font-size:11px;color:#6b7280;">平均能力</div></div>';
+  html+='<div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#d97706;">'+avgInteg+'</div><div style="font-size:11px;color:#6b7280;">平均廉洁度</div></div>';
+  html+='<div style="background:#fdf2f8;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#db2777;">'+Object.keys(rankCount).length+'</div><div style="font-size:11px;color:#6b7280;">职级层次</div></div>';
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">考核分布</div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">';
+  Object.keys(perfCount).forEach(function(p){
+    var pc=p==='优秀'?'#16a34a':p==='称职'?'#2563eb':p==='基本称职'?'#d97706':'#dc2626';
+    html+='<span style="padding:3px 10px;background:'+pc+'15;border-radius:12px;font-size:12px;color:'+pc+';">'+p+' '+perfCount[p]+'人</span>';
+  });
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">干部名册</div>';
+  G.cadres.forEach(function(c){
+    var integColor=c.integrity>=80?'#16a34a':c.integrity>=60?'#d97706':'#dc2626';
+    var perfColor=c.performance==='优秀'?'#16a34a':c.performance==='称职'?'#2563eb':c.performance==='基本称职'?'#d97706':'#dc2626';
+    var relLabel=c.relation>=4?'亲近':c.relation>=2?'一般':'疏远';
+    var relColor=c.relation>=4?'#16a34a':c.relation>=2?'#6b7280':'#dc2626';
+    html+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-bottom:6px;">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    html+='<span style="font-size:14px;font-weight:600;color:#111827;">'+c.name+'</span>';
+    html+='<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#dbeafe;color:#1e40af;">'+c.rank+'</span>';
+    html+='</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#6b7280;margin-bottom:8px;">';
+    html+='<span>单位：'+c.department+'</span><span>职务：'+c.position+'</span>';
+    html+='<span>年龄：'+c.age+'岁</span><span>学历：'+c.education+'</span>';
+    html+='<span>能力：'+c.ability+'</span><span>廉洁：<b style="color:'+integColor+';">'+c.integrity+'</b></span>';
+    html+='<span>考核：<b style="color:'+perfColor+';">'+c.performance+'</b></span><span>关系：<b style="color:'+relColor+';">'+relLabel+'('+c.relation+')</b></span>';
+    html+='<span>任职：'+c.yearsService+'年</span><span>状态：'+c.status+'</span>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:6px;">';
+    html+='<button onclick="doCadreAction(\''+c.id+'\',\'promote\')" style="padding:4px 10px;background:#16a34a;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">提拔</button>';
+    html+='<button onclick="doCadreAction(\''+c.id+'\',\'transfer\')" style="padding:4px 10px;background:#2563eb;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">平调</button>';
+    html+='<button onclick="doCadreAction(\''+c.id+'\',\'assess\')" style="padding:4px 10px;background:#8b5cf6;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">考核</button>';
+    html+='</div></div>';
+  });
+  return html;
+}
+function doCadreAction(cadreId,action){
+  var c=G.cadres.find(function(x){return x.id===cadreId;});
+  if(!c)return;
+  if(action==='promote'){
+    var ranks=['办事员','科员','正股级','副科','正科','副处','正处'];
+    var idx=ranks.indexOf(c.rank);
+    if(idx>=ranks.length-1){alert('已到本级最高职级');return;}
+    c.rank=ranks[idx+1];
+    c.relation=Math.min(5,c.relation+1);
+    addLog('人事',c.name+'提拔为'+c.rank,'success');
+  }else if(action==='transfer'){
+    var depts=['党委办','政府办','发改委','财政局','教育局','卫生局','住建局','交通局','水利局','农业局','商务局','公安局','司法局','人社局','环保局','安监局','审计局','统计局','工商局','税务局'];
+    c.department=depts[Math.floor(Math.random()*depts.length)];
+    addLog('人事',c.name+'平调至'+c.department,'info');
+  }else if(action==='assess'){
+    var results=['优秀','称职','基本称职','不称职'];
+    c.performance=results[Math.floor(Math.random()*results.length)];
+    addLog('人事',c.name+'年度考核：'+c.performance,c.performance==='优秀'?'success':c.performance==='不称职'?'warn':'info');
+  }
+  renderGovModal();
+}
+function doAppoint(cadreId,action){
+  var c=G.cadres.find(function(x){return x.id===cadreId;});
+  if(!c)return;
+  if(action==='promote'){if(c.rank>=8){alert('已到最高职级');return;}appointCadre(cadreId,c.position,c.rank+1);}
+  else if(action==='transfer'){var nd=DEPARTMENTS[Math.floor(Math.random()*DEPARTMENTS.length)];appointCadre(cadreId,nd+'局长',c.rank);}
+  else if(action==='demote'){if(c.rank<=0){alert('已到最低职级');return;}appointCadre(cadreId,c.position,c.rank-1);}
+  renderGovModal();
+}
+function renderProjectTab(){
+  if(!G.projects)G.projects=[];
+  var html='';
+  var building=G.projects.filter(function(p){return p.status==='施工';});
+  var done=G.projects.filter(function(p){return p.status==='竣工';});
+  var totalInv=G.projects.reduce(function(s,p){return s+(p.actualCost||p.cost);},0);
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#2563eb;">'+building.length+'</div><div style="font-size:11px;color:#6b7280;">在建工程</div></div>';
+  html+='<div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#16a34a;">'+done.length+'</div><div style="font-size:11px;color:#6b7280;">已竣工</div></div>';
+  html+='<div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#d97706;">'+G.projects.length+'</div><div style="font-size:11px;color:#6b7280;">立项总数</div></div>';
+  html+='<div style="background:#fdf2f8;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#db2777;">'+fmtNum(totalInv)+'</div><div style="font-size:11px;color:#6b7280;">总投资(万)</div></div>';
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">新立项目</div>';
+  html+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;">';
+  PROJECT_TYPES.forEach(function(t,i){
+    html+='<button onclick="doCreateProject('+i+')" style="padding:5px 10px;background:#fff;border:1px solid #d1d5db;border-radius:6px;font-size:11px;cursor:pointer;color:#374151;">'+t.type+'<br><span style="color:#9ca3af;font-size:10px;">'+t.baseCost+'万/'+t.duration+'月</span></button>';
+  });
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">项目清单</div>';
+  if(G.projects.length===0){html+='<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">暂无项目，点击上方按钮立项</div>';}
+  G.projects.forEach(function(p){
+    var statusColor=p.status==='竣工'?'#16a34a':p.status==='施工'?'#2563eb':'#d97706';
+    var qualityLabel=p.quality>=90?'优良':p.quality>=75?'合格':'较差';
+    var qualityColor=p.quality>=90?'#16a34a':p.quality>=75?'#d97706':'#dc2626';
+    html+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-bottom:6px;">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    html+='<span style="font-size:13px;font-weight:600;color:#111827;">'+p.name+'</span>';
+    html+='<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:'+statusColor+'15;color:'+statusColor+';">'+p.status+'</span>';
+    html+='</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#6b7280;margin-bottom:6px;">';
+    html+='<span>类型：'+p.type+'</span><span>投资：'+fmtNum(p.actualCost||p.cost)+'万</span>';
+    html+='<span>承包商：'+(p.contractor||'招标中')+'</span><span>质量：<b style="color:'+qualityColor+';">'+qualityLabel+'('+p.quality+')</b></span>';
+    html+='</div>';
+    if(p.status==='施工'){
+      html+='<div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin-bottom:4px;"><div style="height:100%;width:'+Math.round(p.progress)+'%;background:#2563eb;"></div></div>';
+      html+='<div style="font-size:11px;color:#6b7280;">进度：'+Math.round(p.progress)+'%</div>';
+    }
+    if(p.status==='立项'){
+      html+='<button onclick="doBidProject(\''+p.id+'\')" style="margin-top:6px;padding:4px 12px;background:#2563eb;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">启动招投标</button>';
+    }
+    html+='</div>';
+  });
+  return html;
+}
+function doCreateProject(idx){
+  if(!G.projects)G.projects=[];
+  var p=createProject(idx);
+  G.projects.push(p);
+  addLog('工程','新立项：'+p.name+'，预算'+p.cost+'万元','info');
+  renderGovModal();
+}
+function doBidProject(pid){bidForProject(pid);renderGovModal();}
+function renderBusinessTab(){
+  if(!G.registrations)G.registrations=[];
+  if(!G.businesses)G.businesses=[];
+  var html='';
+  var pending=G.registrations.filter(function(r){return r.status==='待审批';});
+  var approved=G.registrations.filter(function(r){return r.status==='已批准';});
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#d97706;">'+pending.length+'</div><div style="font-size:11px;color:#6b7280;">待审批</div></div>';
+  html+='<div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#16a34a;">'+approved.length+'</div><div style="font-size:11px;color:#6b7280;">已批准</div></div>';
+  html+='<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#2563eb;">'+G.businesses.length+'</div><div style="font-size:11px;color:#6b7280;">在营企业</div></div>';
+  html+='<div style="background:#fdf2f8;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#db2777;">'+fmtNum(G.businesses.reduce(function(s,b){return s+(b.revenue||0);},0))+'</div><div style="font-size:11px;color:#6b7280;">企业营收(万)</div></div>';
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">注册审批</div>';
+  if(pending.length===0){html+='<div style="padding:10px;text-align:center;color:#9ca3af;font-size:12px;background:#f9fafb;border-radius:6px;margin-bottom:10px;">暂无待审批申请</div>';}
+  pending.forEach(function(r){
+    html+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-bottom:6px;">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    html+='<span style="font-size:13px;font-weight:600;color:#111827;">'+r.name+'</span>';
+    html+='<span style="font-size:11px;color:#d97706;">'+r.status+'</span></div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:#6b7280;margin-bottom:8px;">';
+    html+='<span>类型：'+r.type+'</span><span>行业：'+r.industry+'</span>';
+    html+='<span>注册资本：'+r.capital+'万</span><span>申请日期：'+r.applyDate+'</span>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:6px;">';
+    html+='<button onclick="doApproveReg(\''+r.id+'\',true)" style="padding:4px 14px;background:#16a34a;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">批准</button>';
+    html+='<button onclick="doApproveReg(\''+r.id+'\',false)" style="padding:4px 14px;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">驳回</button>';
+    html+='</div></div>';
+  });
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin:14px 0 6px;">近期注册企业</div>';
+  var recent=G.registrations.filter(function(r){return r.status==='已批准';}).slice(-8).reverse();
+  recent.forEach(function(r){
+    html+='<div style="background:#f9fafb;border-radius:6px;padding:8px 10px;margin-bottom:4px;display:flex;justify-content:space-between;font-size:12px;">';
+    html+='<span style="color:#111827;">'+r.name+'</span>';
+    html+='<span style="color:#6b7280;">'+r.type+' · '+r.capital+'万 · '+r.approveDate+'</span>';
+    html+='</div>';
+  });
+  return html;
+}
+function doApproveReg(rid,approve){approveRegistration(rid,approve);renderGovModal();}
+function renderApplyTab(){
+  if(!G.policies)G.policies=[];
+  var html='';
+  var active=G.policies.filter(function(p){return p.status==='实施';});
+  var drafting=G.policies.filter(function(p){return p.status==='起草';});
+  var submitted=G.policies.filter(function(p){return p.status==='申报';});
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#d97706;">'+drafting.length+'</div><div style="font-size:11px;color:#6b7280;">起草中</div></div>';
+  html+='<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#2563eb;">'+submitted.length+'</div><div style="font-size:11px;color:#6b7280;">上级审批中</div></div>';
+  html+='<div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#16a34a;">'+active.length+'</div><div style="font-size:11px;color:#6b7280;">实施中</div></div>';
+  html+='<div style="background:#fdf2f8;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#db2777;">'+G.policies.length+'</div><div style="font-size:11px;color:#6b7280;">政策总数</div></div>';
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">政策模板（点击起草）</div>';
+  html+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;">';
+  POLICY_TEMPLATES.forEach(function(t){
+    html+='<button onclick="doCreatePolicy(\''+t.id+'\')" style="padding:5px 10px;background:#fff;border:1px solid #d1d5db;border-radius:6px;font-size:11px;cursor:pointer;color:#374151;text-align:left;max-width:140px;">'+t.name+'<br><span style="color:#9ca3af;font-size:10px;">'+t.cost+'万</span></button>';
+  });
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">政策清单</div>';
+  if(G.policies.length===0){html+='<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">暂无政策，点击上方模板起草</div>';}
+  G.policies.forEach(function(p){
+    var statusColor=p.status==='实施'?'#16a34a':p.status==='申报'?'#2563eb':p.status==='评估'?'#8b5cf6':'#d97706';
+    html+='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-bottom:6px;">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+    html+='<span style="font-size:13px;font-weight:600;color:#111827;">'+p.name+'</span>';
+    html+='<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:'+statusColor+'15;color:'+statusColor+';">'+p.status+'</span>';
+    html+='</div>';
+    html+='<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">'+p.desc+'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:#6b7280;margin-bottom:6px;">';
+    html+='<span>预算：'+p.cost+'万</span><span>周期：'+p.duration+'月</span>';
+    if(p.submitDate)html+='<span>申报：'+p.submitDate+'</span>';
+    if(p.approveDate)html+='<span>批准：'+p.approveDate+'</span>';
+    html+='</div>';
+    if(p.status==='实施'){
+      html+='<div style="height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+Math.round(p.progress)+'%;background:#16a34a;"></div></div>';
+      html+='<div style="font-size:11px;color:#6b7280;margin-top:2px;">实施进度：'+Math.round(p.progress)+'%</div>';
+    }
+    if(p.status==='起草'){
+      html+='<button onclick="doSubmitPolicy(\''+p.id+'\')" style="margin-top:6px;padding:4px 12px;background:#2563eb;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;">向上级申报</button>';
+    }
+    html+='</div>';
+  });
+  return html;
+}
+function doCreatePolicy(tid){
+  if(!G.policies)G.policies=[];
+  var p=createPolicy(tid);
+  if(p){G.policies.push(p);addLog('政策','起草新政策：'+p.name,'info');}
+  renderGovModal();
+}
+function doSubmitPolicy(pid){submitPolicy(pid);renderGovModal();}
+function renderPowerTab(){
+  if(!G.power)G.power={corruptionRisk:0,grayIncome:0,favors:0,inspections:0};
+  var html='';
+  var risk=G.power.corruptionRisk||0;
+  var riskColor=risk>=80?'#dc2626':risk>=50?'#d97706':risk>=20?'#2563eb':'#16a34a';
+  var riskLabel=risk>=80?'高危':risk>=50?'警惕':risk>=20?'正常':'清廉';
+  html+='<div style="background:linear-gradient(135deg,'+riskColor+'10,'+riskColor+'05);border:1px solid '+riskColor+'30;border-radius:10px;padding:16px;margin-bottom:14px;text-align:center;">';
+  html+='<div style="font-size:12px;color:#6b7280;margin-bottom:4px;">廉政风险指数</div>';
+  html+='<div style="font-size:36px;font-weight:700;color:'+riskColor+';">'+risk+'<span style="font-size:16px;">%</span></div>';
+  html+='<div style="font-size:13px;font-weight:600;color:'+riskColor+';">'+riskLabel+'</div>';
+  html+='<div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-top:10px;"><div style="height:100%;width:'+risk+'%;background:'+riskColor+';"></div></div>';
+  if(risk>=80)html+='<div style="font-size:11px;color:#dc2626;margin-top:8px;">⚠ 风险过高，随时可能被纪委双规！</div>';
+  html+='</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">';
+  html+='<div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#d97706;">'+fmtNum(G.power.grayIncome||0)+'</div><div style="font-size:11px;color:#6b7280;">灰色收入(万)</div></div>';
+  html+='<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#2563eb;">'+(G.power.favors||0)+'</div><div style="font-size:11px;color:#6b7280;">人情往来</div></div>';
+  html+='<div style="background:#fdf2f8;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#db2777;">'+(G.power.inspections||0)+'</div><div style="font-size:11px;color:#6b7280;">被检查次数</div></div>';
+  html+='</div>';
+  html+='<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">权力行使</div>';
+  var powerActions=[
+    {id:'人事干预',desc:'干预人事任免，培植亲信',risk:15},
+    {id:'项目倾斜',desc:'工程项目向特定企业倾斜',risk:20},
+    {id:'审批加速',desc:'为企业审批开绿灯',risk:10},
+    {id:'执法宽松',desc:'对违规企业网开一面',risk:12},
+    {id:'资金挪用',desc:'挪用专项资金',risk:30},
+    {id:'人情往来',desc:'婚丧嫁娶收受礼金',risk:5}
+  ];
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">';
+  powerActions.forEach(function(a){
+    html+='<button onclick="doUsePower(\''+a.id+'\')" style="padding:10px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;text-align:left;">';
+    html+='<div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:2px;">'+a.id+'</div>';
+    html+='<div style="font-size:11px;color:#6b7280;">'+a.desc+'</div>';
+    html+='<div style="font-size:10px;color:#dc2626;margin-top:2px;">风险+'+a.risk+'%</div>';
+    html+='</button>';
+  });
+  html+='</div>';
+  html+='<div style="padding:10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;font-size:11px;color:#991b1b;">⚠ 警告：权力行使会累积廉政风险，风险超过80%有30%概率被双规，游戏结束。请谨慎使用权力。</div>';
+  return html;
+}
+function doUsePower(action){
+  if(confirm('确定要行使「'+action+'」吗？这会增加廉政风险。')){
+    usePower(action);
+    renderGovModal();
+    if(typeof renderAll==='function')renderAll();
+  }
+}
 
 // ---------- 晋升弹窗 ----------
 function showPromotionModal(newRank){showModal(' 晋升喜报','<div style="text-align:center;padding:12px 0;"><div style="font-size:32px;margin-bottom:8px;"></div><div style="font-size:22px;font-weight:600;color:#007aff;">晋升为 '+newRank+'</div><div style="margin-top:12px;color:rgba(255,255,255,0.6);">工资上涨，考核目标提高</div><div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,0.4);">个人资产、股票持仓全部保留</div></div>',[{text:'继续治理',class:'primary',action:closeModal}]);}
