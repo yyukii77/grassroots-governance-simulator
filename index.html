@@ -76,7 +76,7 @@ function fmtYuanNum(n){if(n===undefined||n===null||isNaN(n))return '0';return Ma
 function fmtPct(n){return (n*100).toFixed(1)+'%'}function clamp(v,min,max){return Math.max(min,Math.min(max,v))}function rand(min,max){return Math.random()*(max-min)+min}function randInt(min,max){return Math.floor(rand(min,max+1))}function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).substr(2,4)}
 var G=null;var projectSelectMode=false;var pendingProject=null;var roadStartPoint=null;var areaSelectStart=null;
 function defaultGame(){return{version:'v2.1',seed:Date.now(),rank:0,rankNames:['乡镇党委书记(正科)','县委常委/副县长(副处)','县长/县委书记(正处)','市委常委/副市长(副厅)','市长/市委书记(正厅)','省委常委/副省长(副部)','省长/省委书记/部长(正部)','政治局委员/副总理(副国)','政治局常委/总理(正国)'],rankShort:['正科','副处','正处','副厅','正厅','副部','正部','副国','正国'],birthYear:1950,age:30,termMonths:0,promotionAttempts:0,lastPromotionYear:1980,cityName:'河滨市',mayorName:'张为民',year:1980,month:1,day:1,hour:9,finance:2500,gdp:18000,population:400000,satisfaction:0.5,superiorEval:0.5,pollution:10,farmland:0,violationMonths:0,grid:[],buildingData:{},policy:{taxProperty:0.01,taxBusiness:0.05,taxIncome:0.03,eduRatio:1,healthRatio:1,infraRatio:1,justiceRatio:1,socialRatio:1,techRatio:1,envRatio:1,envSupervision:5,landFee:1,resettleStd:5,loanRate:0.05,reserveRate:0.1,credit:1,socialCoverage:0.6,subsistence:5,medicalReimb:0.7,pension:0.6},personal:{name:'张为民',deposit:0.02,salary:0.006,education:'大专',eduScore:0,ability:0,health:100,stress:0,corruptionRisk:0,assets:[],stocks:[],consumeLog:[],corruptionLog:[],achievements:[],bank:{currentDeposit:0,fixedDeposits:[],loans:[],creditScore:750,totalAssets:0,totalLiabilities:0}},stocks:[],stockHistory:{},stockPrices:{},cadres:[],projects:[],enterprises:[],personnelCooldown:0,projectCooldown:0,eventCooldown:0,termYears:0,performance:0,examRecords:[],lastSave:Date.now(),debts:[],investors:[],gameOver:false,gameOverReason:'',promoted:false,difficulty:'普通',initFinance:50000,educationIndex:30,medicalIndex:25,securityIndex:70,politicalReputation:50,personalAccount:0,livelihood:{education:30,medical:25,employment:60,housing:40,socialSecurity:35},populationStructure:{labor:6000,elderly:800,children:3200,birthRate:2,deathRate:0.6,naturalGrowth:1.4,inflow:0,outflow:0},financeDetail:{taxRevenue:30000,landRevenue:5000,transferPayment:10000,adminFee:5000,econConstruction:15000,education:9000,medical:6000,admin:7500,socialSecurity:5000,publicSecurity:4000,environmental:2000,other:1500},giniCoefficient:0.35,taxPolicy:{agriculturalTax:true,businessTax:true,valueAddedTax:false,personalIncomeTax:true,propertyTax:false,taxSharingReform:false},relationships:{superior:{name:'老领导',relation:50,trust:50},superior2:{name:'上级领导',relation:30,trust:30},colleagues:[{name:'李书记',relation:40,trust:40,hostile:false},{name:'王市长',relation:35,trust:35,hostile:false}],subordinates:[{name:'张秘书',relation:60,trust:65,loyal:true},{name:'刘局长',relation:45,trust:50,loyal:false}],entrepreneurs:[{name:'陈总',relation:30,trust:25,wealth:5000},{name:'赵董',relation:20,trust:15,wealth:8000}],faction:null},eventState:{lastEventYear:1980,eventCooldown:0,activeEvents:[],disasterHistory:[]},antiCorruption:{inspectionCount:0,reportCount:0,evidenceLevel:0,protector:null,overseasAssets:0,familyBusiness:false},realEstate:{housingPrice:2000,priceIncomeRatio:4, housingInventory:1000,salesArea:0,landSold:0,propertyMarketHeat:50,bubbleRisk:10},investment:{totalInvestment:0,projectCount:0,enterprises:[],successRate:0.3,annualTarget:50000},cityLevel:1,cityLevelName:['小城镇','小城市','中等城市','大城市','特大城市','超大城市'],landAuctionHistory:[],ending:{type:null,title:null,description:null,score:0},airQuality:35,waterQuality:85,greenCoverage:15,noiseLevel:45,trafficCongestion:20,powerSupply:500,powerDemand:300,waterSupply:400,waterDemand:250,sewageCapacity:200,sewageDemand:150,garbageCapacity:100,garbageDemand:80,commercialJobs:500,commercialJobDemand:800,industrialJobs:300,industrialJobDemand:600,powerCooldown:{bribery:0,donation:0,nepotism:0},adminStatus:{level:0,mergedTowns:[],applied:false},triggeredEvents:[],farmlandLimit:0.13,totalTiles:2500,logs:[],investorQueue:[],
-nation:{cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStability:0.6,eraYear:1980,nationalPolicy:{fiveYearPlan:{startYear:1981,endYear:1985,focus:'gdp'}},events:[]},
+nation:{cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStability:0.6,eraYear:1980,nationalPolicy:{fiveYearPlan:{startYear:1981,endYear:1985,focus:'gdp'}},events:[]},cityId:null,
 career:{cities:[],achievements:[],totalTermYears:0,reputation:0},
 housing:{averagePrice:800,priceIncomeRatio:4,rentPriceRatio:4.5,supply:1000,demand:1200,speculationIndex:0.2,rentalYield:0.04,vacancyRate:0.08,landSupply:50,landPrice:100,landRevenue:0,auctionHistory:[]},
 debt:{balance:0,annualRepayment:0,creditRating:'AA',defaultRisk:0.02,interestRate:0.04,repaymentCapacity:0.8},
@@ -228,20 +228,28 @@ function advanceMonth(){if(G.gameOver)return;G.month++;G.termMonths++;if(G.month
 function getDaysInMonth(year,month){return [31,28,31,30,31,30,31,31,30,31,30,31][month-1]||30;}
 function dailyTick(){G.population+=Math.floor(rand(0,5));G.satisfaction+=(Math.random()-0.5)*0.001;G.satisfaction=clamp(G.satisfaction,0,1);G.superiorEval+=(Math.random()-0.5)*0.0005;G.superiorEval=clamp(G.superiorEval,0,1);G.finance-=5;if(G.finance<0)G.finance=0;}
 
-// ========== 全国宏观与旧城市AI代理系统 ==========
-function archiveCurrentCity(){
+
+function generateCityId(){return 'city_'+Date.now().toString(36)+'_'+Math.random().toString(36).substr(2,4);}
+
+function initCurrentCityArchive(){
   if(!G.nation)G.nation={cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStability:0.6,eraYear:G.year,nationalPolicy:{fiveYearPlan:{startYear:1981,endYear:1985,focus:'gdp'}},events:[]};
-  var cityArchive={
-    id:'city_'+Date.now()+'_'+Math.floor(Math.random()*1000),
+  if(!G.cityId)G.cityId=generateCityId();
+  // 检查是否已有该城市档案
+  var existing=G.nation.cities.find(function(c){return c.id===G.cityId;});
+  if(existing){existing.isActive=true;return;}
+  var archive={
+    id:G.cityId,
     name:G.cityName,
     level:G.startLevel||0,
     rankWhenLeft:G.rank,
-    startYear:G.career&&G.career.cities.length===0?1980:(G.nation.cities.length>0?G.nation.cities[G.nation.cities.length-1].endYear:1980),
-    startMonth:1,
-    endYear:G.year,
-    endMonth:G.month,
-    playerTermYears:G.termYears,
-    history:{years:[],population:[],gdp:[],satisfaction:[],pollution:[],finance:[]},
+    startYear:G.year,
+    startMonth:G.month,
+    endYear:null,
+    endMonth:null,
+    playerTermYears:0,
+    history:[],
+    terms:[{type:'player',startYear:G.year,startMonth:G.month,endYear:null,endMonth:null,startRank:G.rank,endRank:null,evalAtEnd:null}],
+    milestones:[],
     snapshot:{
       grid:G.grid?G.grid.map(function(row){return row.slice();}):[],
       buildingCount:G.buildingData?Object.keys(G.buildingData).length:0,
@@ -257,25 +265,77 @@ function archiveCurrentCity(){
       technology:1.0+(G.educationIndex||30)/100,
       ageStructure:G.society&&G.society.ageStructure?G.society.ageStructure:{'0-14':0.28,'15-59':0.62,'60+':0.10}
     },
-    aiGovernor:{
-      strategy:['balanced','gdp','livelihood','stable','aggressive'][Math.floor(Math.random()*5)],
-      decisions:[],
-      performance:0.5,
-      ability:0.4+Math.random()*0.4
-    },
+    aiGovernor:{strategy:'balanced',decisions:[],performance:0.5,ability:0.6},
     lastUpdateYear:G.year,
     lastUpdateMonth:G.month,
-    isActive:false
+    isActive:true
   };
-  cityArchive.history.years.push(G.year);
-  cityArchive.history.population.push(G.population);
-  cityArchive.history.gdp.push(G.gdp);
-  cityArchive.history.satisfaction.push(G.satisfaction);
-  cityArchive.history.pollution.push(G.pollution);
-  cityArchive.history.finance.push(G.finance);
-  G.nation.cities.push(cityArchive);
+  G.nation.cities.push(archive);
   if(!G.career)G.career={cities:[],achievements:[],totalTermYears:0,reputation:0};
-  G.career.cities.push(cityArchive.id);
+  if(G.career.cities.indexOf(G.cityId)<0)G.career.cities.push(G.cityId);
+}
+
+function recordCitySnapshot(){
+  if(!G.cityId||!G.nation)return;
+  var archive=G.nation.cities.find(function(c){return c.id===G.cityId;});
+  if(!archive)return;
+  archive.history.push({
+    year:G.year,month:G.month,
+    population:Math.round(G.population),
+    gdp:Math.round(G.gdp),
+    satisfaction:Math.round(G.satisfaction*1000)/1000,
+    eval:Math.round(G.superiorEval*1000)/1000,
+    pollution:Math.round(G.pollution*10)/10,
+    education:Math.round((G.educationIndex||0)*10)/10,
+    medical:Math.round((G.medicalIndex||0)*10)/10,
+    employment:Math.round((G.livelihood&&G.livelihood.employment?G.livelihood.employment:0)*10)/10,
+    rank:G.rank
+  });
+  if(archive.history.length>600)archive.history=archive.history.slice(-600);
+  archive.lastUpdateYear=G.year;
+  archive.lastUpdateMonth=G.month;
+}
+
+function addMilestone(text,type){
+  if(!G.cityId||!G.nation)return;
+  var archive=G.nation.cities.find(function(c){return c.id===G.cityId;});
+  if(!archive)return;
+  archive.milestones.push({year:G.year,month:G.month,text:text,type:type||'event'});
+  if(archive.milestones.length>50)archive.milestones=archive.milestones.slice(-50);
+}
+
+// ========== 全国宏观与旧城市AI代理系统 ==========
+function archiveCurrentCity(){
+  if(!G.nation)G.nation={cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStability:0.6,eraYear:G.year,nationalPolicy:{fiveYearPlan:{startYear:1981,endYear:1985,focus:'gdp'}},events:[]};
+  if(!G.cityId)initCurrentCityArchive();
+  var cityArchive=G.nation.cities.find(function(c){return c.id===G.cityId;});
+  if(!cityArchive){initCurrentCityArchive();cityArchive=G.nation.cities.find(function(c){return c.id===G.cityId;});}
+  // 记录玩家任期结束
+  var lastTerm=cityArchive.terms[cityArchive.terms.length-1];
+  if(lastTerm&&lastTerm.type==='player'&&!lastTerm.endYear){
+    lastTerm.endYear=G.year;lastTerm.endMonth=G.month;lastTerm.endRank=G.rank;lastTerm.evalAtEnd=G.superiorEval;
+  }
+  cityArchive.endYear=G.year;cityArchive.endMonth=G.month;
+  cityArchive.playerTermYears=G.termYears;
+  cityArchive.rankWhenLeft=G.rank;
+  cityArchive.isActive=false;
+  // 更新快照（供AI代理使用）
+  cityArchive.snapshot.grid=G.grid?G.grid.map(function(row){return row.slice();}):[];
+  cityArchive.snapshot.buildingCount=G.buildingData?Object.keys(G.buildingData).length:0;
+  cityArchive.snapshot.businessCount=G.businesses?G.businesses.length:0;
+  cityArchive.snapshot.housing=G.housing?JSON.parse(JSON.stringify(G.housing)):{};
+  cityArchive.snapshot.pollution=G.pollution;cityArchive.snapshot.satisfaction=G.satisfaction;
+  cityArchive.snapshot.finance=G.finance;cityArchive.snapshot.gdp=G.gdp;cityArchive.snapshot.population=G.population;
+  cityArchive.snapshot.capitalStock=G.gdp*2;cityArchive.snapshot.labor=Math.round(G.population*0.6);
+  cityArchive.snapshot.technology=1.0+(G.educationIndex||30)/100;
+  // 分配AI代理
+  cityArchive.aiGovernor={
+    strategy:['balanced','gdp','livelihood','stable','aggressive'][Math.floor(Math.random()*5)],
+    decisions:[],performance:G.satisfaction,ability:0.4+Math.random()*0.4
+  };
+  // 添加里程碑
+  cityArchive.milestones.push({year:G.year,month:G.month,text:'晋升调任，AI代理接管',type:'promotion'});
+  if(!G.career)G.career={cities:[],achievements:[],totalTermYears:0,reputation:0};
   G.career.totalTermYears+=G.termYears;
   return cityArchive.id;
 }
@@ -284,11 +344,14 @@ function simulateCityMonth(cityArchive){
   var s=cityArchive.snapshot;
   var ai=cityArchive.aiGovernor;
   var hist=cityArchive.history;
-  var lastGDP=hist.gdp[hist.gdp.length-1]||s.gdp;
-  var lastPop=hist.population[hist.population.length-1]||s.population;
-  var lastSat=hist.satisfaction[hist.satisfaction.length-1]||s.satisfaction;
-  var lastPoll=hist.pollution[hist.pollution.length-1]||s.pollution;
-  var lastFin=hist.finance[hist.finance.length-1]||s.finance;
+  // 兼容新旧history格式
+  var lastRec=hist.length>0&&typeof hist[hist.length-1]==='object'?hist[hist.length-1]:null;
+  var lastGDP=lastRec?lastRec.gdp:(hist.gdp?hist.gdp[hist.gdp.length-1]:s.gdp);
+  var lastPop=lastRec?lastRec.population:(hist.population?hist.population[hist.population.length-1]:s.population);
+  var lastSat=lastRec?lastRec.satisfaction:(hist.satisfaction?hist.satisfaction[hist.satisfaction.length-1]:s.satisfaction);
+  var lastPoll=lastRec?lastRec.pollution:(hist.pollution?hist.pollution[hist.pollution.length-1]:s.pollution);
+  var lastFin=lastRec?lastRec.finance:(hist.finance?hist.finance[hist.finance.length-1]:s.finance);
+  if(lastFin===undefined)lastFin=s.finance;
 
   // 城市级别基准增长率
   var baseGrowth=[0.004,0.006,0.008,0.006][cityArchive.level]||0.005;
@@ -342,13 +405,8 @@ function simulateCityMonth(cityArchive){
   var newPoll=clamp(lastPoll+(gdpGrowth>0.006?0.1:-0.05)+(Math.random()-0.5)*0.2,0,100);
 
   // 记录（每年记录一次，减少数据量）
-  if(G.month===12||hist.years.length===0){
-    hist.years.push(G.year);
-    hist.population.push(Math.round(newPop));
-    hist.gdp.push(Math.round(newGDP));
-    hist.satisfaction.push(Math.round(newSat*1000)/1000);
-    hist.pollution.push(Math.round(newPoll*10)/10);
-    hist.finance.push(Math.round(newFinance));
+  if(G.month===12||hist.length===0||typeof hist[0]!=='object'){
+    hist.push({year:G.year,month:G.month,population:Math.round(newPop),gdp:Math.round(newGDP),satisfaction:Math.round(newSat*1000)/1000,pollution:Math.round(newPoll*10)/10,finance:Math.round(newFinance),eval:ai.performance,education:lastRec?lastRec.education:30,medical:lastRec?lastRec.medical:25,employment:lastRec?lastRec.employment:60,rank:cityArchive.rankWhenLeft});
   }
 
   // 更新快照
@@ -363,12 +421,12 @@ function updateNationStats(){
   var totalGDP=G.gdp,totalPop=G.population,totalSat=G.satisfaction,count=1;
   G.nation.cities.forEach(function(c){
     if(c.isActive)return;
-    var last=c.history.gdp.length-1;
-    if(last>=0){
-      totalGDP+=c.history.gdp[last]||0;
-      totalPop+=c.history.population[last]||0;
-      totalSat+=c.history.satisfaction[last]||0;
-      count++;
+    var last=c.history.length>0?c.history[c.history.length-1]:null;
+    if(last&&typeof last==='object'){
+      totalGDP+=last.gdp||0;totalPop+=last.population||0;totalSat+=last.satisfaction||0;count++;
+    }else if(c.history.gdp&&c.history.gdp.length>0){
+      var idx=c.history.gdp.length-1;
+      totalGDP+=c.history.gdp[idx]||0;totalPop+=c.history.population[idx]||0;totalSat+=c.history.satisfaction[idx]||0;count++;
     }
   });
   G.nation.totalGDP=Math.round(totalGDP);
@@ -378,10 +436,12 @@ function updateNationStats(){
   // 全国政治稳定指数
   var avgPoll=G.pollution;
   G.nation.cities.forEach(function(c){
-    var last=c.history.pollution.length-1;
-    if(last>=0)avgPoll+=c.history.pollution[last]||0;
+    if(c.isActive)return;
+    var last=c.history.length>0?c.history[c.history.length-1]:null;
+    if(last&&typeof last==='object'){avgPoll+=last.pollution||0;}
+    else if(c.history.pollution&&c.history.pollution.length>0){avgPoll+=c.history.pollution[c.history.pollution.length-1]||0;}
   });
-  avgPoll/=(G.nation.cities.length+1);
+  avgPoll/=(G.nation.cities.filter(function(c){return !c.isActive;}).length+1);
   G.nation.politicalStability=Math.round(clamp(0.8-G.nation.avgSatisfaction*0.3-avgPoll/200+0.3,0.1,0.95)*100)/100;
 }
 
@@ -395,7 +455,7 @@ function simulateAllOldCities(){
   updateNationStats();
 }
 
-function monthlySettlement(){simulateAllOldCities();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
+function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
   // 发放工资
   var monthlySalary = G.personal.salary || 0.006;
   G.personal.deposit += monthlySalary;
@@ -1148,6 +1208,11 @@ function submitPromotionApplication() {
     G.termMonths = 0;
     G.promotionCooldown = 0;
     G.age = Math.min(80, G.age + 1);
+    // 新城市生成档案
+    G.cityId=generateCityId();
+    initCurrentCityArchive();
+    recordCitySnapshot();
+    addMilestone('到任履新','career');
     // 重新初始化社会系统
     if (typeof initSociety === 'function') initSociety();
     if (typeof initCadres === 'function') initCadres();
@@ -1268,13 +1333,17 @@ function calculateFinalScore(){
   if(cities.length===0)return{grade:'合格',title:'基层干部',score:60,details:'未完成跨城市任职'};
   var totalGrowth=0,totalSat=0,totalPoll=0,validCount=0;
   cities.forEach(function(c){
-    var last=c.history.gdp.length-1;
-    if(last>0){
-      var start=c.history.gdp[0]||1;
-      var end=c.history.gdp[last]||1;
+    var hist=c.history;
+    var isNew=hist.length>0&&typeof hist[0]==='object';
+    var last=isNew?hist[hist.length-1]:null;
+    var first=isNew?hist[0]:null;
+    var oldLast=!isNew&&hist.gdp?hist.gdp.length-1:-1;
+    if((isNew&&hist.length>1)||oldLast>0){
+      var start=isNew?(first.gdp||1):(hist.gdp[0]||1);
+      var end=isNew?(last.gdp||1):(hist.gdp[oldLast]||1);
       totalGrowth+=(end-start)/start;
-      totalSat+=c.history.satisfaction[last]||0.5;
-      totalPoll+=c.history.pollution[last]||20;
+      totalSat+=isNew?(last.satisfaction||0.5):(hist.satisfaction[oldLast]||0.5);
+      totalPoll+=isNew?(last.pollution||20):(hist.pollution[oldLast]||20);
       validCount++;
     }
   });
@@ -1309,20 +1378,47 @@ html+='<div style="background:linear-gradient(135deg,#1c1c1e,#2c2c2e);border-rad
 // 任职履历
 html+='<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);"><div style="font-size:14px;font-weight:700;color:#000;margin-bottom:8px;">任职履历</div>';
 if(G.nation&&G.nation.cities&&G.nation.cities.length>0){
-G.nation.cities.forEach(function(c,idx){
-var lastIdx=c.history.gdp.length-1;
-var startGDP=c.history.gdp[0]||c.snapshot.gdp;
-var endGDP=c.history.gdp[lastIdx]||c.snapshot.gdp;
-var gdpGrowth=startGDP>0?((endGDP-startGDP)/startGDP*100).toFixed(1):'0';
 var levelNames=['乡镇','县城','地级市','副省级市'];
-html+='<div style="padding:8px 0;border-bottom:0.5px solid #e5e5ea;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;color:#000;">'+(idx+1)+'. '+c.name+'</span><span style="font-size:11px;color:#8e8e93;">'+levelNames[c.level]+'</span></div><div style="font-size:11px;color:#6b7280;margin-top:3px;">任期：'+c.startYear+'-'+c.endYear+'年 | GDP增长：<span style="color:'+(gdpGrowth>0?'#34c759':'#e74c5e')+';">'+(gdpGrowth>0?'+':'')+gdpGrowth+'%</span> | AI继任评分：'+Math.round(c.aiGovernor.performance*100)+'分</div><div style="font-size:11px;color:#8e8e93;margin-top:2px;">离任时：GDP '+fmtNum(endGDP)+'万 | 人口 '+c.history.population[lastIdx].toLocaleString()+' | 满意度 '+Math.round(c.history.satisfaction[lastIdx]*100)+'%</div></div>';
+G.nation.cities.forEach(function(c,idx){
+// 兼容新旧history格式
+var hist=c.history;
+var isNewFormat=hist.length>0&&typeof hist[0]==='object';
+var firstRec=isNewFormat?hist[0]:null;
+var lastRec=isNewFormat?hist[hist.length-1]:null;
+var startGDP=firstRec?firstRec.gdp:(hist.gdp?hist.gdp[0]:c.snapshot.gdp);
+var endGDP=lastRec?lastRec.gdp:(hist.gdp?hist.gdp[hist.gdp.length-1]:c.snapshot.gdp);
+var endPop=lastRec?lastRec.population:(hist.population?hist.population[hist.population.length-1]:c.snapshot.population);
+var endSat=lastRec?lastRec.satisfaction:(hist.satisfaction?hist.satisfaction[hist.satisfaction.length-1]:c.snapshot.satisfaction);
+var gdpGrowth=startGDP>0?((endGDP-startGDP)/startGDP*100).toFixed(1):'0';
+var isCurrent=c.isActive;
+html+='<div style="padding:8px 0;border-bottom:0.5px solid #e5e5ea;">';
+html+='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;color:#000;">'+(idx+1)+'. '+c.name+(isCurrent?' <span style="font-size:10px;color:#007aff;background:#e3f2ff;padding:1px 6px;border-radius:4px;">在任</span>':'')+'</span><span style="font-size:11px;color:#8e8e93;">'+levelNames[c.level]+'</span></div>';
+// 任期分段
+if(c.terms&&c.terms.length>0){
+c.terms.forEach(function(t){
+var termLabel=t.type==='player'?'👤 玩家治理':'🤖 AI代理';
+var termColor=t.type==='player'?'#007aff':'#ff9500';
+var endY=t.endYear||G.year;
+html+='<div style="font-size:11px;color:#6b7280;margin-top:3px;padding-left:8px;border-left:2px solid '+termColor+';"><span style="color:'+termColor+';font-weight:600;">'+termLabel+'</span> '+t.startYear+'-'+endY+'年</div>';
+});
+}
+html+='<div style="font-size:11px;color:#6b7280;margin-top:3px;">GDP增长：<span style="color:'+(gdpGrowth>0?'#34c759':'#e74c5e')+';">'+(gdpGrowth>0?'+':'')+gdpGrowth+'%</span> | 现任状态：GDP '+fmtNum(endGDP)+'万 | 人口 '+endPop.toLocaleString()+' | 满意度 '+Math.round(endSat*100)+'%</div>';
+// 里程碑
+if(c.milestones&&c.milestones.length>0){
+html+='<div style="font-size:10px;color:#8e8e93;margin-top:3px;padding-left:8px;">';
+c.milestones.slice(-3).forEach(function(m){
+html+='<span style="display:inline-block;margin-right:8px;">📌 '+m.year+'.'+m.month+' '+m.text+'</span>';
+});
+html+='</div>';
+}
+html+='</div>';
 });
 }else{
 html+='<div style="color:#8e8e93;text-align:center;padding:16px;font-size:12px;">尚未有调任记录，晋升后将显示历任城市发展追踪</div>';
 }
 html+='</div>';
-// 当前城市
-html+='<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);"><div style="font-size:14px;font-weight:700;color:#000;margin-bottom:8px;">当前任职</div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">城市</span><strong>'+G.cityName+'</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">职务</span><strong>'+G.rankNames[G.rank]+'</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">任期</span><strong>'+G.termYears.toFixed(1)+'年</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">累计执政</span><strong>'+((G.career&&G.career.totalTermYears)?G.career.totalTermYears.toFixed(1):0)+'年</strong></div></div>';
+// 当前城市详细指标
+html+='<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);"><div style="font-size:14px;font-weight:700;color:#000;margin-bottom:8px;">当前任职</div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">城市</span><strong>'+G.cityName+'</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">职务</span><strong>'+G.rankNames[G.rank]+'</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">本届任期</span><strong>'+G.termYears.toFixed(1)+'年</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">累计执政</span><strong>'+((G.career&&G.career.totalTermYears)?(G.career.totalTermYears+G.termYears).toFixed(1):G.termYears.toFixed(1))+'年</strong></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#8e8e93;">本月快照数</span><strong>'+((G.nation&&G.nation.cities&&G.cityId)?(G.nation.cities.find(function(c){return c.id===G.cityId;})?G.nation.cities.find(function(c){return c.id===G.cityId;}).history.length:0):0)+'条</strong></div></div>';
 html+='</div>';container.innerHTML=html;
 }else if(activeTab==='help'){var html='<div style="font-size:13px;line-height:1.7;color:#3c3c43;"><div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);"><div style="font-size:15px;font-weight:700;color:#000;margin-bottom:8px;">操作说明</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">鼠标拖拽</div><div style="margin-bottom:6px;color:#000;">平移地图</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">鼠标滚轮</div><div style="margin-bottom:6px;color:#000;">缩放地图 (0.3x~3x)</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">建造模式</div><div style="margin-bottom:6px;color:#000;">选择地块后点击/拖拽放置</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">拆除模式</div><div style="margin-bottom:6px;color:#000;">点击格子恢复为空地</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">查看模式</div><div style="color:#000;">点击格子查看详情</div></div><div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);"><div style="font-size:15px;font-weight:700;color:#000;margin-bottom:8px;">核心机制</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">耕地红线</div><div style="margin-bottom:6px;color:#000;">13%，连续违规触发处罚</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">初始学历</div><div style="margin-bottom:6px;color:#000;">大专，可考试提升</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">晋升条件</div><div style="margin-bottom:6px;color:#000;">GDP/人口/满意度/上级评价/学历达标</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">晋升保留</div><div style="color:#000;">个人资产(含股票)全部保留</div></div><div style="background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);"><div style="font-size:15px;font-weight:700;color:#000;margin-bottom:8px;">时间推进</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">+1小时</div><div style="margin-bottom:6px;color:#000;">股票价格波动(交易时间)</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">+1天</div><div style="margin-bottom:6px;color:#000;">日结算，股票收盘</div><div style="color:#8e8e93;font-size:12px;margin-bottom:4px;">+1月</div><div style="color:#000;">月结算(产出/支出/事件)</div></div></div>';container.innerHTML=html;}}
 // ---------- Tab 切换 ----------
@@ -1384,7 +1480,7 @@ var ALL_FACILITIES={}; // 补全空对象（因篇幅原因，仅作占位）
 function countBuildingType(type){var c=0;for(var y=0;y<50;y++){for(var x=0;x<50;x++){if(G.grid[y][x]===type)c++;}}return c;}
 function getFarmlandRatio(){return G.farmland/G.totalTiles;}
 function addLog(type,msg,cls){if(!G)return;G.logs.unshift({time:G.year+'-'+String(G.month).padStart(2,'0')+'-'+String(G.day).padStart(2,'0')+' '+String(G.hour).padStart(2,'0')+':00',type:type,msg:msg,cls:cls||'info'});if(G.logs.length>200)G.logs.length=200;}
-function initGame(name,city,difficulty,startLevel){G=defaultGame();G.mayorName=name||'张为民';G.cityName=city||'河滨市';G.difficulty=difficulty||'普通';G.startLevel=startLevel||0;G.personal.name=name||'张为民';if(G.difficulty==='简单'){G.finance=4000;G.gdp=25000;G.population=500000;G.superiorEval=0.6;G.initFinance=4000;}else if(G.difficulty==='困难'){G.finance=1000;G.gdp=8000;G.population=250000;G.superiorEval=0.4;G.initFinance=1000;}else{G.finance=2500;G.gdp=18000;G.population=400000;G.superiorEval=0.5;G.initFinance=2500;}G.grid=generateExistingCity(G.startLevel||0);autoCalculateCityStats(G.startLevel||0);G.farmland=countFarmland();G.cadres=generateCadres();G.projects=[];G.enterprises=generateEnterprises();G.personnelCooldown=0;G.projectCooldown=0;G.personal.deposit=0.02;G.personal.salary=0.006;G.personal.education='大专';G.personal.eduScore=0;G.personal.ability=0;G.birthYear=1950;G.age=30;G.termMonths=0;G.promotionAttempts=0;G.lastPromotionYear=1980;G.livelihood={education:30,medical:25,employment:60,housing:40,socialSecurity:35};G.populationStructure={labor:6000,elderly:800,children:3200,birthRate:2,deathRate:0.6,naturalGrowth:1.4,inflow:0,outflow:0};G.financeDetail={taxRevenue:30000,landRevenue:5000,transferPayment:10000,adminFee:5000,econConstruction:15000,education:9000,medical:6000,admin:7500,socialSecurity:5000,publicSecurity:4000,environmental:2000,other:1500};G.giniCoefficient=0.35;G.taxPolicy={agriculturalTax:true,businessTax:true,valueAddedTax:false,personalIncomeTax:true,propertyTax:false,taxSharingReform:false};G.relationships={superior:{name:'老领导',relation:50,trust:50},superior2:{name:'上级领导',relation:30,trust:30},colleagues:[{name:'李书记',relation:40,trust:40,hostile:false},{name:'王市长',relation:35,trust:35,hostile:false}],subordinates:[{name:'张秘书',relation:60,trust:65,loyal:true},{name:'刘局长',relation:45,trust:50,loyal:false}],entrepreneurs:[{name:'陈总',relation:30,trust:25,wealth:5000},{name:'赵董',relation:20,trust:15,wealth:8000}],faction:null};G.eventState={lastEventYear:1980,eventCooldown:0,activeEvents:[],disasterHistory:[]};G.antiCorruption={inspectionCount:0,reportCount:0,evidenceLevel:0,protector:null,overseasAssets:0,familyBusiness:false};G.realEstate={housingPrice:2000,priceIncomeRatio:4,housingInventory:1000,salesArea:0,landSold:0,propertyMarketHeat:50,bubbleRisk:10};G.investment={totalInvestment:0,projectCount:0,enterprises:[],successRate:0.3,annualTarget:50000};G.cityLevel=1;G.ending={type:null,title:null,description:null,score:0};initStocks();addLog('系统','欢迎来到'+G.cityName+'！您已就任'+G.rankNames[G.rank]+'。','success');addLog('系统','当前耕地比例: '+fmtPct(G.farmland/G.totalTiles),'info');addLog('系统','提示: 耕地红线为13%，请合理规划城市建设。','warn');generateHistoryKlines();var eduBuildings=countBuildingType(3)+countBuildingType(10);G.educationIndex=Math.min(100,Math.max(0,20+eduBuildings*2+G.policy.eduRatio*5+G.population/10000));G.medicalIndex=Math.min(100,Math.max(0,15+countBuildingType(6)*3+G.policy.healthRatio*5));G.securityIndex=Math.min(100,Math.max(0,50+G.policy.justiceRatio*10+G.satisfaction*20-G.pollution/5));var industrialCount=countBuildingType(5)+countBuildingType(8);var greenCount=countBuildingType(6);G.airQuality=Math.max(10,Math.min(300,30+industrialCount*8-greenCount*3+G.pollution*1.5));G.waterQuality=Math.max(20,Math.min(100,85-G.pollution*0.5+countBuildingType(7)*0.5));G.greenCoverage=Math.min(80,(greenCount/2500*100*3));G.noiseLevel=Math.max(30,Math.min(80,40+industrialCount*1.5+countBuildingType(2)*0.3));G.trafficCongestion=Math.min(100,G.population/5000-countBuildingType(2)*0.5);G.powerSupply=countBuildingType(8)*200+200;G.powerDemand=Math.round(G.population*0.05+countBuildingType(3)*10+countBuildingType(4)*15+countBuildingType(5)*20);G.waterSupply=countBuildingType(9)*150+300;G.waterDemand=Math.round(G.population*0.03+countBuildingType(3)*8+countBuildingType(4)*12);G.sewageCapacity=countBuildingType(9)*80+100;G.sewageDemand=Math.round(G.population*0.02);G.garbageCapacity=countBuildingType(6)*20+80;G.garbageDemand=Math.round(G.population*0.015);G.commercialJobs=countBuildingType(4)*50+countBuildingType(10)*100;G.commercialJobDemand=Math.round(G.population*0.3);G.industrialJobs=countBuildingType(5)*80+countBuildingType(8)*30;G.industrialJobDemand=Math.round(G.population*0.25);if(G.powerCooldown.bribery>0)G.powerCooldown.bribery--;if(G.powerCooldown.donation>0)G.powerCooldown.donation--;var demandScore=0;if(G.powerSupply>=G.powerDemand)demandScore+=5;if(G.waterSupply>=G.waterDemand)demandScore+=5;if(G.sewageCapacity>=G.sewageDemand)demandScore+=3;if(G.garbageCapacity>=G.garbageDemand)demandScore+=3;if(G.commercialJobs>=G.commercialJobDemand)demandScore+=5;if(G.industrialJobs>=G.industrialJobDemand)demandScore+=5;G.satisfaction=Math.min(1,Math.max(0,G.satisfaction+(demandScore-15)/1000));initSociety();if(typeof initCadres==="function")initCadres();autoSave();if(typeof centerMap==="function")centerMap();renderAll();
+function initGame(name,city,difficulty,startLevel){G=defaultGame();G.mayorName=name||'张为民';G.cityName=city||'河滨市';G.difficulty=difficulty||'普通';G.startLevel=startLevel||0;G.personal.name=name||'张为民';if(G.difficulty==='简单'){G.finance=4000;G.gdp=25000;G.population=500000;G.superiorEval=0.6;G.initFinance=4000;}else if(G.difficulty==='困难'){G.finance=1000;G.gdp=8000;G.population=250000;G.superiorEval=0.4;G.initFinance=1000;}else{G.finance=2500;G.gdp=18000;G.population=400000;G.superiorEval=0.5;G.initFinance=2500;}G.grid=generateExistingCity(G.startLevel||0);autoCalculateCityStats(G.startLevel||0);G.farmland=countFarmland();G.cadres=generateCadres();G.projects=[];G.enterprises=generateEnterprises();G.personnelCooldown=0;G.projectCooldown=0;G.personal.deposit=0.02;G.personal.salary=0.006;G.personal.education='大专';G.personal.eduScore=0;G.personal.ability=0;G.birthYear=1950;G.age=30;G.termMonths=0;G.promotionAttempts=0;G.lastPromotionYear=1980;G.livelihood={education:30,medical:25,employment:60,housing:40,socialSecurity:35};G.populationStructure={labor:6000,elderly:800,children:3200,birthRate:2,deathRate:0.6,naturalGrowth:1.4,inflow:0,outflow:0};G.financeDetail={taxRevenue:30000,landRevenue:5000,transferPayment:10000,adminFee:5000,econConstruction:15000,education:9000,medical:6000,admin:7500,socialSecurity:5000,publicSecurity:4000,environmental:2000,other:1500};G.giniCoefficient=0.35;G.taxPolicy={agriculturalTax:true,businessTax:true,valueAddedTax:false,personalIncomeTax:true,propertyTax:false,taxSharingReform:false};G.relationships={superior:{name:'老领导',relation:50,trust:50},superior2:{name:'上级领导',relation:30,trust:30},colleagues:[{name:'李书记',relation:40,trust:40,hostile:false},{name:'王市长',relation:35,trust:35,hostile:false}],subordinates:[{name:'张秘书',relation:60,trust:65,loyal:true},{name:'刘局长',relation:45,trust:50,loyal:false}],entrepreneurs:[{name:'陈总',relation:30,trust:25,wealth:5000},{name:'赵董',relation:20,trust:15,wealth:8000}],faction:null};G.eventState={lastEventYear:1980,eventCooldown:0,activeEvents:[],disasterHistory:[]};G.antiCorruption={inspectionCount:0,reportCount:0,evidenceLevel:0,protector:null,overseasAssets:0,familyBusiness:false};G.realEstate={housingPrice:2000,priceIncomeRatio:4,housingInventory:1000,salesArea:0,landSold:0,propertyMarketHeat:50,bubbleRisk:10};G.investment={totalInvestment:0,projectCount:0,enterprises:[],successRate:0.3,annualTarget:50000};G.cityLevel=1;G.ending={type:null,title:null,description:null,score:0};initStocks();addLog('系统','欢迎来到'+G.cityName+'！您已就任'+G.rankNames[G.rank]+'。','success');addLog('系统','当前耕地比例: '+fmtPct(G.farmland/G.totalTiles),'info');addLog('系统','提示: 耕地红线为13%，请合理规划城市建设。','warn');generateHistoryKlines();var eduBuildings=countBuildingType(3)+countBuildingType(10);G.educationIndex=Math.min(100,Math.max(0,20+eduBuildings*2+G.policy.eduRatio*5+G.population/10000));G.medicalIndex=Math.min(100,Math.max(0,15+countBuildingType(6)*3+G.policy.healthRatio*5));G.securityIndex=Math.min(100,Math.max(0,50+G.policy.justiceRatio*10+G.satisfaction*20-G.pollution/5));var industrialCount=countBuildingType(5)+countBuildingType(8);var greenCount=countBuildingType(6);G.airQuality=Math.max(10,Math.min(300,30+industrialCount*8-greenCount*3+G.pollution*1.5));G.waterQuality=Math.max(20,Math.min(100,85-G.pollution*0.5+countBuildingType(7)*0.5));G.greenCoverage=Math.min(80,(greenCount/2500*100*3));G.noiseLevel=Math.max(30,Math.min(80,40+industrialCount*1.5+countBuildingType(2)*0.3));G.trafficCongestion=Math.min(100,G.population/5000-countBuildingType(2)*0.5);G.powerSupply=countBuildingType(8)*200+200;G.powerDemand=Math.round(G.population*0.05+countBuildingType(3)*10+countBuildingType(4)*15+countBuildingType(5)*20);G.waterSupply=countBuildingType(9)*150+300;G.waterDemand=Math.round(G.population*0.03+countBuildingType(3)*8+countBuildingType(4)*12);G.sewageCapacity=countBuildingType(9)*80+100;G.sewageDemand=Math.round(G.population*0.02);G.garbageCapacity=countBuildingType(6)*20+80;G.garbageDemand=Math.round(G.population*0.015);G.commercialJobs=countBuildingType(4)*50+countBuildingType(10)*100;G.commercialJobDemand=Math.round(G.population*0.3);G.industrialJobs=countBuildingType(5)*80+countBuildingType(8)*30;G.industrialJobDemand=Math.round(G.population*0.25);if(G.powerCooldown.bribery>0)G.powerCooldown.bribery--;if(G.powerCooldown.donation>0)G.powerCooldown.donation--;var demandScore=0;if(G.powerSupply>=G.powerDemand)demandScore+=5;if(G.waterSupply>=G.waterDemand)demandScore+=5;if(G.sewageCapacity>=G.sewageDemand)demandScore+=3;if(G.garbageCapacity>=G.garbageDemand)demandScore+=3;if(G.commercialJobs>=G.commercialJobDemand)demandScore+=5;if(G.industrialJobs>=G.industrialJobDemand)demandScore+=5;G.satisfaction=Math.min(1,Math.max(0,G.satisfaction+(demandScore-15)/1000));initSociety();if(typeof initCadres==="function")initCadres();autoSave();initCurrentCityArchive();recordCitySnapshot();addMilestone('到任履新','career');if(typeof centerMap==="function")centerMap();renderAll();
   // 游戏开始后自动开启时间推进
   setTimeout(function(){
     autoTimeEnabled=true;
