@@ -1595,15 +1595,17 @@ function updateHousingMarket(){
   // 供给（最低100套防止除零）
   var resBuild=0;try{resBuild=(countBuildingType(3)||0)+(countBuildingType(36)||0);}catch(e){resBuild=100;}
   G.housing.supply=Math.max(100,resBuild*120*(1-G.housing.vacancyRate));
-  // 价格（限制波动范围）
+  // 价格 = 年代基准 × 供需因子 × 投机因子
+  var basePrice=getHousePrice(G.year);
   var sdRatio=G.housing.supply/Math.max(1,G.housing.demand);
-  var priceChange=(1/Math.max(0.1,sdRatio)-1)*0.15;
-  priceChange=clamp(priceChange,-0.1,0.15);
-  priceChange+=G.housing.speculationIndex*0.08;
-  if(G.year>=2016){priceChange*=0.7;G.housing.speculationIndex=Math.max(0,G.housing.speculationIndex-0.01);}
-  if(!G.housing.averagePrice||isNaN(G.housing.averagePrice))G.housing.averagePrice=800;
-  G.housing.averagePrice*=(1+priceChange);
-  G.housing.averagePrice=Math.max(200,Math.min(200000,G.housing.averagePrice));
+  var supplyFactor=clamp(1/Math.max(0.3,sdRatio),0.5,2.0);  // 供需因子0.5~2.0
+  var specFactor=1+G.housing.speculationIndex*0.5;  // 投机加成
+  if(G.year>=2016){specFactor*=0.85;G.housing.speculationIndex=Math.max(0,G.housing.speculationIndex-0.01);}
+  var targetPrice=basePrice*supplyFactor*specFactor;
+  // 平滑过渡到目标价格（每月调整10%）
+  if(!G.housing.averagePrice||isNaN(G.housing.averagePrice))G.housing.averagePrice=basePrice;
+  G.housing.averagePrice=G.housing.averagePrice*0.9+targetPrice*0.1;
+  G.housing.averagePrice=Math.max(100,Math.min(200000,G.housing.averagePrice));
   // 房价收入比
   var medianIncome=(G.society&&G.society.medianIncome)||((G.society&&G.society.averageWage)||3000)||3000;
   G.housing.priceIncomeRatio=G.housing.averagePrice/Math.max(1,medianIncome*12)*100;
