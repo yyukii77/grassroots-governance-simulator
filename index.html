@@ -217,6 +217,8 @@ function monthlySettlement(){decreasePromotionCooldown();updateBankSystem();if(G
   var termLimit=G.rank===0?3:5;if(G.termYears>=termLimit){checkPromotion();}addLog('结算',''+G.year+'年'+G.month+'月结算完成，GDP +'+fmtNum(gdpAdd)+'，税收 +'+fmtNum(taxAdd)+'，工资 +'+fmtYuan(monthlySalary),'info');}
 function annualSettlement(){
   G.age++;
+  checkRetirement();
+  if (G.gameOver) return;
   // 工资随年份增长
   var newSalary = calculateSalary(G.rank, G.year);
   if (G.personal.salary * 10000 != newSalary) {
@@ -672,6 +674,24 @@ function doUsePower(action){
   }
 }
 
+// ---------- 退休机制 ----------
+function getRetirementAge(rank) {
+  if (rank >= 7) return 70;   // 副国/正国：70岁
+  if (rank >= 5) return 65;   // 副部/正部：65岁
+  return 60;                   // 厅局级及以下：60岁
+}
+
+function checkRetirement() {
+  if (G.gameOver) return;
+  var retireAge = getRetirementAge(G.rank);
+  if (G.age >= retireAge) {
+    G.gameOver = true;
+    G.gameOverReason = '光荣退休！您'+G.age+'岁，达到'+retireAge+'岁退休年龄。';
+    addLog('退休', '🎉 '+G.gameOverReason, 'success');
+    showModal('光荣退休', '<div style="text-align:center;padding:20px;"><div style="font-size:48px;margin-bottom:12px;">🎊</div><div style="font-size:20px;font-weight:700;color:#007aff;">光荣退休</div><div style="font-size:14px;color:#8e8e93;margin-top:10px;line-height:1.8;">您 '+G.age+' 岁，已达到 '+retireAge+' 岁退休年龄<br><br>最终职务：'+G.rankNames[G.rank]+'<br>执政年限：'+Math.floor(G.termMonths/12)+'年<br>最终GDP：'+fmtMoney(G.gdp)+'<br>最终人口：'+G.population.toLocaleString()+'人</div></div>', [{text:'重新开始',class:'primary',action:function(){closeModal();location.reload();}}]);
+  }
+}
+
 // ---------- 申请晋升 ----------
 function getPromotionRequirements(rank) {
   var reqs = [
@@ -807,7 +827,7 @@ function getYearSalaryMultiplier(year) {
 
 // 根据级别和年份计算实际月薪（元）
 function calculateSalary(rank, year) {
-  var baseSalary = [60, 100, 150, 250, 400, 600, 900, 1500, 2500][rank] || 60;  // 1980年基准
+  var baseSalary = [60, 80, 100, 130, 160, 200, 250, 320, 400][rank] || 60;  // 1980年基准，级别差距合理
   var multiplier = getYearSalaryMultiplier(year);
   return Math.round(baseSalary * multiplier);
 }
@@ -2268,7 +2288,12 @@ ${recentLogs}
     {"type": "policy", "policy_id": "livelihood", "reason": "改善民生提升满意度"},
     {"type": "project", "project_type": 0, "reason": "修建道路改善基建"},
     {"type": "take_exam", "reason": "参加学历考试提升自己"},
-    {"type": "apply_promotion", "reason": "条件满足时申请晋升"}
+    {"type": "apply_promotion", "reason": "条件满足时申请晋升"},
+    {"type": "buy_house", "reason": "存款充足时购买房产"},
+    {"type": "buy_car", "reason": "有一定存款后购买车辆"},
+    {"type": "buy_stock", "reason": "1991年后用闲钱投资股票"},
+    {"type": "handle_government", "reason": "处理政务（人事/工程/工商/申报）"},
+    {"type": "handle_event", "reason": "及时处理突发事件"}
   ],
   "analysis": "你对当前局势的简短分析"
 }
@@ -2293,6 +2318,10 @@ tax_break税收优惠 talent_intro人才引进 infra_invest基建投资 env_prot
 - 每年1月有年度考核和历史事件
 - 禁止使用任何调试功能或控制台
 - 目标：在任期内发展经济、改善民生、获得晋升，最终达到最高职务
+- 个人生活：存款充足时要买房买车，1991年后可投资股票，注意劳逸结合
+- 政务处理：定期审批企业注册、考核干部、推进工程招投标
+- 突发事件：及时处理activeEvents中的事件，不要让事件积压
+- 退休：达到退休年龄（60/65/70岁）游戏结束，要在退休前达成目标
 
 请做出你的决策。只返回JSON，不要其他文字。`;
 }
@@ -2404,6 +2433,104 @@ function executeAIAction(action) {
         log('晋升冷却中或已达最高级');
         return false;
       }
+
+    case 'buy_house':
+      if (G.personal.deposit >= 1) {
+        G.personal.deposit -= 1;
+        if (!G.personal.assets) G.personal.assets = [];
+        G.personal.assets.push({type:'房产',value:1,year:G.year});
+        log('购买房产，支出1万元');
+        return true;
+      } else {
+        log('存款不足，无法买房');
+        return false;
+      }
+
+    case 'buy_car':
+      if (G.personal.deposit >= 0.2) {
+        G.personal.deposit -= 0.2;
+        if (!G.personal.assets) G.personal.assets = [];
+        G.personal.assets.push({type:'车辆',value:0.2,year:G.year});
+        log('购买车辆，支出2000元');
+        return true;
+      } else {
+        log('存款不足，无法买车');
+        return false;
+      }
+
+    case 'buy_stock':
+      if (G.year >= 1991 && G.personal.deposit >= 0.05 && G.stocks && G.stocks.length > 0) {
+        var stock = G.stocks[Math.floor(Math.random()*G.stocks.length)];
+        var shares = 100;
+        var cost = stock.price * shares / 10000;
+        if (G.personal.deposit >= cost) {
+          G.personal.deposit -= cost;
+          if (!G.personal.stocks) G.personal.stocks = [];
+          G.personal.stocks.push({code:stock.code,shares:shares,cost:stock.price});
+          log('买入'+stock.name+' '+shares+'股，支出'+(cost*10000).toFixed(0)+'元');
+          return true;
+        }
+      }
+      log('不适合买股票（年代/存款/市场）');
+      return false;
+
+    case 'handle_government':
+      // 随机处理一项政务
+      var govActions = [];
+      if (G.registrations && G.registrations.filter(function(r){return r.status==='待审批';}).length > 0) {
+        govActions.push('审批企业');
+      }
+      if (G.cadres && G.cadres.length > 0) {
+        govActions.push('考核干部');
+      }
+      if (G.projects && G.projects.filter(function(p){return p.status==='招标中';}).length > 0) {
+        govActions.push('工程招投标');
+      }
+      if (govActions.length > 0) {
+        var action = govActions[Math.floor(Math.random()*govActions.length)];
+        if (action === '审批企业') {
+          var pending = G.registrations.filter(function(r){return r.status==='待审批';});
+          if (pending.length > 0) {
+            var reg = pending[0];
+            if (Math.random() < 0.8) {
+              reg.status = '已批准';
+              reg.approved = true;
+              log('审批通过企业：'+reg.name);
+            } else {
+              reg.status = '已驳回';
+              log('驳回企业：'+reg.name);
+            }
+          }
+        } else if (action === '考核干部') {
+          var cadre = G.cadres[Math.floor(Math.random()*G.cadres.length)];
+          cadre.performance = Math.min(100, (cadre.performance||50) + Math.floor(Math.random()*20)-5);
+          log('考核干部：'+cadre.name+'，评分'+cadre.performance);
+        } else if (action === '工程招投标') {
+          var bidding = G.projects.filter(function(p){return p.status==='招标中';});
+          if (bidding.length > 0) {
+            bidding[0].status = '建设中';
+            log('完成招投标：'+bidding[0].name);
+          }
+        }
+        return true;
+      } else {
+        log('暂无待处理政务');
+        return false;
+      }
+
+    case 'handle_event':
+      if (G.eventState && G.eventState.activeEvents && G.eventState.activeEvents.length > 0) {
+        var evt = G.eventState.activeEvents[0];
+        if (evt.choices && evt.choices.length > 0) {
+          var choice = evt.choices[0];
+          if (choice.effect) choice.effect();
+          G.eventState.activeEvents.shift();
+          log('处理突发事件：'+evt.name+' - '+choice.text);
+          return true;
+        }
+      }
+      log('暂无突发事件');
+      return false;
 
     case 'demolish':
       // 拆除污染建筑
