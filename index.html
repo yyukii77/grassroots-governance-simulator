@@ -53,7 +53,7 @@
 <div class="stat-row"><span class="lbl">健康</span><span class="val" id="p-health">100%</span></div>
 <div class="stat-row"><span class="lbl">压力</span><span class="val" id="p-stress">0%</span></div>
 <div id="stockHoldingPanel" style="margin-top:12px;padding:12px;background:#f9f9fb;border-radius:12px;"><div style="font-size:13px;font-weight:600;color:#1c1c1e;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>股票持仓</span><span id="holdingCount" style="font-size:11px;color:#8e8e93;font-weight:normal;">0只</span></div><div id="holdingEmpty" style="text-align:center;padding:8px 0;font-size:12px;color:#8e8e93;">暂无持仓</div><div id="holdingDetail" style="display:none;"><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8e8e93;">总市值</span><span id="holdingTotalValue" style="font-size:13px;font-weight:600;color:#1c1c1e;">0万元</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8e8e93;">总成本</span><span id="holdingTotalCost" style="font-size:13px;font-weight:600;color:#1c1c1e;">0万元</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid #e5e5ea;margin-top:4px;padding-top:8px;"><span style="font-size:12px;color:#8e8e93;">浮动盈亏</span><span id="holdingTotalProfit" style="font-size:14px;font-weight:700;">+0万元</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8e8e93;">收益率</span><span id="holdingTotalRate" style="font-size:13px;font-weight:600;">+0%</span></div></div></div>
-<div class="action-group"><button class="btn-sm primary" onclick="openExamModal()">学历考试</button><button class="btn-sm" onclick="openConsumeModal()">消费购物</button><button class="btn-sm" onclick="openPersonalModal('property')">房产管理</button><button class="btn-sm" onclick="openPersonalModal('vehicle')">车辆管理</button><button class="btn-sm" onclick="openPersonalModal('relation')">人际关系</button><button class="btn-sm" onclick="openPersonalModal('family')">家庭情况</button><button class="btn-sm" onclick="openBankModal()">银行系统</button></div>
+<div class="action-group"><button class="btn-sm primary" onclick="openExamModal()">学历考试</button><button class="btn-sm" onclick="openPromotionModal()">申请晋升</button><button class="btn-sm" onclick="openConsumeModal()">消费购物</button><button class="btn-sm" onclick="openPersonalModal('property')">房产管理</button><button class="btn-sm" onclick="openPersonalModal('vehicle')">车辆管理</button><button class="btn-sm" onclick="openPersonalModal('relation')">人际关系</button><button class="btn-sm" onclick="openPersonalModal('family')">家庭情况</button><button class="btn-sm" onclick="openBankModal()">银行系统</button></div>
 <div style="margin-top:6px;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;border-top:1px solid rgba(255,255,255,0.04);padding-top:6px;">晋升后个人资产全部保留</div>
 </div>
 </div>
@@ -209,7 +209,7 @@ function advanceDay(){if(G.gameOver)return;G.day++;var daysInMonth=getDaysInMont
 function advanceMonth(){if(G.gameOver)return;G.month++;G.termMonths++;if(G.month>12){G.month=1;G.year++;annualSettlement();}G.day=1;monthlySettlement();closeDailyKline();dailyTick();autoSave();renderAll();}
 function getDaysInMonth(year,month){return [31,28,31,30,31,30,31,31,30,31,30,31][month-1]||30;}
 function dailyTick(){G.population+=Math.floor(rand(0,5));G.satisfaction+=(Math.random()-0.5)*0.001;G.satisfaction=clamp(G.satisfaction,0,1);G.superiorEval+=(Math.random()-0.5)*0.0005;G.superiorEval=clamp(G.superiorEval,0,1);G.finance-=5;if(G.finance<0)G.finance=0;}
-function monthlySettlement(){updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.25)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
+function monthlySettlement(){decreasePromotionCooldown();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.25)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
   // 发放工资
   var monthlySalary = G.personal.salary || 0.006;
   G.personal.deposit += monthlySalary;
@@ -669,6 +669,122 @@ function doUsePower(action){
     usePower(action);
     renderGovModal();
     if(typeof renderAll==='function')renderAll();
+  }
+}
+
+// ---------- 申请晋升 ----------
+function getPromotionRequirements(rank) {
+  var reqs = [
+    {term: 3, gdp: 25000, pop: 450000, eval: 50, edu: '大专'},   // 正科→副处
+    {term: 5, gdp: 60000, pop: 600000, eval: 55, edu: '大专'},   // 副处→正处
+    {term: 5, gdp: 150000, pop: 1000000, eval: 60, edu: '本科'}, // 正处→副厅
+    {term: 5, gdp: 400000, pop: 2000000, eval: 65, edu: '本科'}, // 副厅→正厅
+    {term: 5, gdp: 1000000, pop: 5000000, eval: 70, edu: '硕士'}, // 正厅→副部
+  ];
+  return reqs[rank] || reqs[reqs.length-1];
+}
+
+function openPromotionModal() {
+  if (G.rank >= G.rankNames.length - 1) {
+    showModal('申请晋升', '<div style="text-align:center;padding:30px;"><div style="font-size:48px;margin-bottom:12px;">🏛️</div><div style="font-size:18px;font-weight:600;">已达最高职务</div><div style="font-size:14px;color:#8e8e93;margin-top:8px;">您已是'+G.rankNames[G.rank]+'，无法继续晋升</div></div>', [{text:'关闭',class:'',action:closeModal}]);
+    return;
+  }
+  var req = getPromotionRequirements(G.rank);
+  var nextRank = G.rankNames[G.rank+1];
+  var termYears = Math.floor(G.termMonths/12);
+  var eduLevel = {'大专':0,'本科':1,'硕士':2,'博士':3};
+  var currentEdu = eduLevel[G.personal.education] || 0;
+  var requiredEdu = eduLevel[req.edu] || 0;
+
+  var checks = [
+    {label:'任期年限', current: termYears+'年', required: req.term+'年', pass: termYears >= req.term},
+    {label:'GDP总量', current: fmtMoney(G.gdp), required: req.gdp+'万元', pass: G.gdp >= req.gdp},
+    {label:'人口规模', current: G.population.toLocaleString()+'人', required: req.pop.toLocaleString()+'人', pass: G.population >= req.pop},
+    {label:'上级评价', current: (G.superiorEval*100).toFixed(0)+'%', required: req.eval+'%', pass: G.superiorEval*100 >= req.eval},
+    {label:'学历要求', current: G.personal.education, required: req.edu, pass: currentEdu >= requiredEdu},
+  ];
+
+  var allPass = checks.every(function(c){return c.pass;});
+  var cooldown = G.promotionCooldown || 0;
+  var canApply = allPass && cooldown === 0;
+
+  var html = '<div style="padding:4px;">';
+  html += '<div style="background:linear-gradient(135deg,#007aff,#5ac8fa);border-radius:12px;padding:16px;color:#fff;margin-bottom:16px;">';
+  html += '<div style="font-size:14px;opacity:0.8;">当前职务</div>';
+  html += '<div style="font-size:20px;font-weight:700;margin-top:4px;">'+G.rankNames[G.rank]+'</div>';
+  html += '<div style="font-size:13px;opacity:0.8;margin-top:8px;">↓ 申请晋升为</div>';
+  html += '<div style="font-size:18px;font-weight:700;margin-top:2px;">'+nextRank+'</div>';
+  html += '</div>';
+
+  html += '<div style="font-size:15px;font-weight:700;margin-bottom:10px;">晋升条件</div>';
+  checks.forEach(function(c) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:'+(c.pass?'#f0fdf4':'#fef2f2')+';border-radius:8px;margin-bottom:6px;">';
+    html += '<span style="font-size:14px;color:#1c1c1e;">'+c.label+'</span>';
+    html += '<span style="font-size:13px;color:'+(c.pass?'#16a34a':'#dc2626')+';font-weight:600;">'+c.current+' / '+c.required+' '+(c.pass?'✓':'✗')+'</span>';
+    html += '</div>';
+  });
+
+  if (cooldown > 0) {
+    html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:12px;font-size:13px;color:#92400e;">⏳ 申请冷却中，'+cooldown+'个月后可再次申请</div>';
+  }
+
+  html += '<div style="margin-top:16px;">';
+  if (canApply) {
+    html += '<button onclick="submitPromotionApplication()" style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:16px;font-weight:700;cursor:pointer;">📝 提交晋升申请</button>';
+  } else if (cooldown > 0) {
+    html += '<button disabled style="width:100%;padding:14px;border:none;border-radius:10px;background:#d1d5db;color:#6b7280;font-size:16px;font-weight:700;cursor:not-allowed;">冷却中...</button>';
+  } else {
+    html += '<button disabled style="width:100%;padding:14px;border:none;border-radius:10px;background:#d1d5db;color:#6b7280;font-size:16px;font-weight:700;cursor:not-allowed;">条件未达标</button>';
+    html += '<div style="text-align:center;font-size:12px;color:#8e8e93;margin-top:8px;">请先满足所有晋升条件</div>';
+  }
+  html += '</div></div>';
+
+  showModal('申请晋升', html, [{text:'关闭',class:'',action:closeModal}]);
+}
+
+function submitPromotionApplication() {
+  var req = getPromotionRequirements(G.rank);
+  var termYears = Math.floor(G.termMonths/12);
+  var eduLevel = {'大专':0,'本科':1,'硕士':2,'博士':3};
+  var currentEdu = eduLevel[G.personal.education] || 0;
+  var requiredEdu = eduLevel[req.edu] || 0;
+
+  var allPass = termYears >= req.term && G.gdp >= req.gdp && G.population >= req.pop && G.superiorEval*100 >= req.eval && currentEdu >= requiredEdu;
+
+  if (!allPass) {
+    showModal('申请失败', '<div style="text-align:center;padding:20px;"><div style="font-size:36px;margin-bottom:10px;">❌</div><div style="font-size:16px;">晋升条件未全部满足</div><div style="font-size:13px;color:#8e8e93;margin-top:8px;">请继续努力，达成所有条件后再申请</div></div>', [{text:'知道了',class:'primary',action:closeModal}]);
+    return;
+  }
+
+  // 晋升成功率：基础70% + 上级评价加成 + 靠山关系加成
+  var successRate = 0.7 + (G.superiorEval - 0.5) * 0.3 + (G.relationships.superior.relation / 100) * 0.1;
+  successRate = Math.min(0.95, Math.max(0.3, successRate));
+
+  closeModal();
+
+  if (Math.random() < successRate) {
+    // 晋升成功
+    G.rank++;
+    G.termMonths = 0;
+    G.promotionCooldown = 0;
+    G.personal.salary = calculateSalary(G.rank, G.year) / 10000;
+    var newRankName = G.rankNames[G.rank];
+    addLog('晋升', '🎉 晋升申请通过！您已晋升为'+newRankName+'，月薪'+calculateSalary(G.rank, G.year)+'元', 'success');
+    showPromotionModal(newRankName);
+  } else {
+    // 晋升失败
+    G.promotionCooldown = 6;
+    G.superiorEval = Math.max(0, G.superiorEval - 0.02);
+    addLog('晋升', '晋升申请未通过，上级认为还需锻炼。6个月后可再次申请。', 'warning');
+    showModal('申请结果', '<div style="text-align:center;padding:20px;"><div style="font-size:36px;margin-bottom:10px;">📋</div><div style="font-size:16px;font-weight:600;">晋升申请未通过</div><div style="font-size:13px;color:#8e8e93;margin-top:8px;line-height:1.8;">上级组织部门经过考察，认为您还需要进一步锻炼。<br>6个月后可再次申请。<br><br>建议：提升上级评价、发展经济、改善民生</div></div>', [{text:'继续努力',class:'primary',action:closeModal}]);
+  }
+  renderAll();
+}
+
+// 月度结算时减少晋升冷却
+function decreasePromotionCooldown() {
+  if (G.promotionCooldown && G.promotionCooldown > 0) {
+    G.promotionCooldown--;
   }
 }
 
@@ -2151,7 +2267,8 @@ ${recentLogs}
     {"type": "build", "building_type": 3, "reason": "建设住宅"},
     {"type": "policy", "policy_id": "livelihood", "reason": "改善民生提升满意度"},
     {"type": "project", "project_type": 0, "reason": "修建道路改善基建"},
-    {"type": "take_exam", "reason": "参加学历考试提升自己"}
+    {"type": "take_exam", "reason": "参加学历考试提升自己"},
+    {"type": "apply_promotion", "reason": "条件满足时申请晋升"}
   ],
   "analysis": "你对当前局势的简短分析"
 }
@@ -2169,7 +2286,7 @@ tax_break税收优惠 talent_intro人才引进 infra_invest基建投资 env_prot
 - 每轮决策必须包含 advance_month 推进时间，否则游戏无法进展
 - 耕地红线13%，低于会被处罚
 - 财政不能长期为负
-- 满意度和上级评价是晋升关键
+- 满意度和上级评价是晋升关键，条件满足时使用 apply_promotion 申请晋升
 - 注意污染治理
 - 学历低于当前年代最高学历时应优先 take_exam 参加学历考试（需存款>=50元，注意1982年前只能考大专、1985年前最高本科、1990年前最高硕士），通过后工资和能力提升
 - 1980年代注意计划生育，2016年后可鼓励生育
@@ -2265,6 +2382,26 @@ function executeAIAction(action) {
         return true;
       } else {
         log('存款不足，无法参加学历考试');
+        return false;
+      }
+
+    case 'apply_promotion':
+      if (G.rank < G.rankNames.length - 1 && (G.promotionCooldown || 0) === 0) {
+        var req = getPromotionRequirements(G.rank);
+        var termYears = Math.floor(G.termMonths/12);
+        var eduLevel = {'大专':0,'本科':1,'硕士':2,'博士':3};
+        var currentEdu = eduLevel[G.personal.education] || 0;
+        var requiredEdu = eduLevel[req.edu] || 0;
+        var canApply = termYears >= req.term && G.gdp >= req.gdp && G.population >= req.pop && G.superiorEval*100 >= req.eval && currentEdu >= requiredEdu;
+        if (canApply) {
+          submitPromotionApplication();
+          log('提交晋升申请');
+        } else {
+          log('晋升条件未满足，继续努力');
+        }
+        return true;
+      } else {
+        log('晋升冷却中或已达最高级');
         return false;
       }
 
