@@ -991,6 +991,7 @@ function handleEventChoice(idx){
   var choice = G.currentEvent.choices[idx];
   choice.effect();
   G.currentEvent = null;
+  if(typeof AI_STATE!=='undefined'){AI_STATE.thinking=false;}
   closeModal();
   renderAll();
 }
@@ -1004,7 +1005,22 @@ function triggerInvestor(){
     {name:'台商王总', industry:'电子产业', amount: 3000+Math.floor(Math.random()*5000), condition: function(){return G.educationIndex > 40;}},
     {name:'浙商张老板', industry:'商贸物流', amount: 1500+Math.floor(Math.random()*2500), condition: function(){return true;}},
     {name:'外资企业代表', industry:'高新技术', amount: 5000+Math.floor(Math.random()*8000), condition: function(){return G.gdp > 20000 && G.educationIndex > 50;}},
-    {name:'本地企业家陈总', industry:'房地产', amount: 1000+Math.floor(Math.random()*2000), condition: function(){return G.population > 300000;}}
+    {name:'本地企业家陈总', industry:'房地产', amount: 1000+Math.floor(Math.random()*2000), condition: function(){return G.population > 300000;}},
+    {name:'闽商黄董', industry:'食品加工', amount: 1200+Math.floor(Math.random()*2000), condition: function(){return true;}},
+    {name:'粤商刘总', industry:'服装纺织', amount: 1800+Math.floor(Math.random()*2500), condition: function(){return G.gdp > 8000;}},
+    {name:'苏商周老板', industry:'机械制造', amount: 2500+Math.floor(Math.random()*3500), condition: function(){return G.gdp > 10000;}},
+    {name:'川商杨总', industry:'餐饮连锁', amount: 800+Math.floor(Math.random()*1500), condition: function(){return true;}},
+    {name:'鲁商赵董', industry:'化工建材', amount: 3000+Math.floor(Math.random()*4000), condition: function(){return G.gdp > 15000;}},
+    {name:'湘商陈老板', industry:'文化旅游', amount: 1500+Math.floor(Math.random()*2500), condition: function(){return G.population > 200000;}},
+    {name:'徽商吴总', industry:'医药健康', amount: 3500+Math.floor(Math.random()*4500), condition: function(){return G.medicalIndex > 30;}},
+    {name:'赣商黄老板', industry:'农业加工', amount: 1000+Math.floor(Math.random()*1800), condition: function(){return G.farmland > 200;}},
+    {name:'鄂商李总', industry:'汽车零部件', amount: 4000+Math.floor(Math.random()*5000), condition: function(){return G.gdp > 25000;}},
+    {name:'豫商张董', industry:'物流仓储', amount: 2000+Math.floor(Math.random()*3000), condition: function(){return G.population > 250000;}},
+    {name:'陕商王老板', industry:'能源矿业', amount: 5000+Math.floor(Math.random()*6000), condition: function(){return G.gdp > 30000;}},
+    {name:'辽商刘总', industry:'装备制造', amount: 4500+Math.floor(Math.random()*5500), condition: function(){return G.educationIndex > 45;}},
+    {name:'津商赵总', industry:'国际贸易', amount: 3000+Math.floor(Math.random()*4000), condition: function(){return G.gdp > 20000;}},
+    {name:'渝商周老板', industry:'互联网科技', amount: 2500+Math.floor(Math.random()*3500), condition: function(){return G.educationIndex > 50;}},
+    {name:'滇商杨总', industry:'生物科技', amount: 3500+Math.floor(Math.random()*4500), condition: function(){return G.gdp > 35000;}}
   ];
   var available = investorTypes.filter(function(i){return i.condition();});
   if(available.length === 0) return;
@@ -1872,7 +1888,7 @@ document.querySelectorAll('.tab-group').forEach(function(group){var activeIndex=
 // ---------- 存档系统 ----------
 var SAVE_KEY='sscd_save_v8';
 function autoSave(){if(!G)return;try{G.lastSave=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(G));}catch(e){console.warn('自动存档失败:',e);}}
-function saveGame(){if(!G){addLog('系统',' 游戏未开始，无法存档','warn');return;}try{G.lastSave=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(G));addLog('系统','手动存档成功','success');renderLogs();}catch(e){showModal('存档失败','<div style="color:#e74c5e;">存档失败: '+e.message+'</div>',[{text:'确定',class:'',action:closeModal}]);}}
+function saveGame(){if(!G){addLog('系统',' 游戏未开始，无法存档','warn');return;}try{if(G.logs&&G.logs.length>200)G.logs=G.logs.slice(-200);if(G.cityArchives){for(var _aid in G.cityArchives){if(G.cityArchives[_aid].history&&G.cityArchives[_aid].history.length>300)G.cityArchives[_aid].history=G.cityArchives[_aid].history.slice(-300);}}if(G.stockHistory){for(var _sc in G.stockHistory){if(G.stockHistory[_sc]&&G.stockHistory[_sc].length>500)G.stockHistory[_sc]=G.stockHistory[_sc].slice(-500);}}G.lastSave=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(G));addLog('系统','手动存档成功','success');renderLogs();}catch(e){showModal('存档失败','<div style="color:#e74c5e;">存档失败: '+e.message+'</div>',[{text:'确定',class:'',action:closeModal}]);}}
 function loadGame(){try{var data=localStorage.getItem(SAVE_KEY);if(!data){showModal('读取存档','<div>没有找到存档记录。</div>',[{text:'新建游戏',class:'primary',action:function(){closeModal();showStartScreen();}},{text:'关闭',class:'',action:closeModal}]);return;}G=JSON.parse(data);if(G.personal&&G.personal.stocks){G.personal.stocks=G.personal.stocks.filter(function(s){return s.shares>0;});}if(!G.personal.stocks)G.personal.stocks=[];if(!G.stockHistory)G.stockHistory={};if(!G.stockPrices)G.stockPrices={};if(!G.buildingData)G.buildingData={};if(!G.logs)G.logs=[];if(!G.debts)G.debts=[];
 if(!G.nation)G.nation={cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStability:0.6,eraYear:G.year,nationalPolicy:{fiveYearPlan:{startYear:1981,endYear:1985,focus:'gdp'}},events:[]};
 if(!G.career)G.career={cities:[],achievements:[],totalTermYears:0,reputation:0};if(!G.citizens||!G.society){initSociety();addLog('系统','检测到旧存档，已初始化社会运行系统','info');}
@@ -4707,8 +4723,9 @@ function executeAIAction(action) {
           }
         } else if (action === '考核干部') {
           var cadre = G.cadres[Math.floor(Math.random()*G.cadres.length)];
-          cadre.performance = Math.min(100, (cadre.performance||50) + Math.floor(Math.random()*20)-5);
-          log('考核干部：'+cadre.name+'，评分'+cadre.performance);
+          var basePerf = typeof cadre.performance === 'number' ? cadre.performance : (cadre.ability||50);
+          cadre.performance = Math.min(100, Math.max(0, basePerf + Math.floor(Math.random()*20)-5));
+          log('考核干部：'+cadre.name+'，评分'+Math.round(cadre.performance));
         } else if (action === '工程招投标') {
           var bidding = G.projects.filter(function(p){return p.status==='招标中';});
           if (bidding.length > 0) {
@@ -4768,6 +4785,11 @@ function getAIDecision(callback) {
   AI_STATE.thinking = true;
   var prompt = buildAIPrompt();
 
+  var aiTimeout = setTimeout(function(){
+    AI_STATE.thinking = false;
+    callback({ error: 'API请求超时（30秒），自动推进' });
+    if (typeof advanceMonth === 'function') { try{advanceMonth();}catch(e){} }
+  }, 30000);
   fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
@@ -4782,6 +4804,7 @@ function getAIDecision(callback) {
     })
   }).then(function(res) { return res.json(); })
   .then(function(data) {
+    clearTimeout(aiTimeout);
     AI_STATE.thinking = false;
     if (data.choices && data.choices[0]) {
       var content = data.choices[0].message.content;
@@ -4812,6 +4835,7 @@ function getAIDecision(callback) {
       callback({ error: data.error ? data.error.message : 'API返回异常', raw: JSON.stringify(data) });
     }
   }).catch(function(err) {
+    clearTimeout(aiTimeout);
     AI_STATE.thinking = false;
     callback({ error: '网络错误: ' + err.message });
   });
