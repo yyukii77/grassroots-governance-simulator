@@ -209,7 +209,7 @@ function advanceDay(){if(G.gameOver)return;G.day++;var daysInMonth=getDaysInMont
 function advanceMonth(){if(G.gameOver)return;G.month++;G.termMonths++;if(G.month>12){G.month=1;G.year++;annualSettlement();}G.day=1;monthlySettlement();closeDailyKline();dailyTick();autoSave();renderAll();}
 function getDaysInMonth(year,month){return [31,28,31,30,31,30,31,31,30,31,30,31][month-1]||30;}
 function dailyTick(){G.population+=Math.floor(rand(0,5));G.satisfaction+=(Math.random()-0.5)*0.001;G.satisfaction=clamp(G.satisfaction,0,1);G.superiorEval+=(Math.random()-0.5)*0.0005;G.superiorEval=clamp(G.superiorEval,0,1);G.finance-=5;if(G.finance<0)G.finance=0;}
-function monthlySettlement(){decreasePromotionCooldown();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.25)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
+function monthlySettlement(){decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.25)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
   // 发放工资
   var monthlySalary = G.personal.salary || 0.006;
   G.personal.deposit += monthlySalary;
@@ -690,6 +690,154 @@ function checkRetirement() {
     addLog('退休', '🎉 '+G.gameOverReason, 'success');
     showModal('光荣退休', '<div style="text-align:center;padding:20px;"><div style="font-size:48px;margin-bottom:12px;">🎊</div><div style="font-size:20px;font-weight:700;color:#007aff;">光荣退休</div><div style="font-size:14px;color:#8e8e93;margin-top:10px;line-height:1.8;">您 '+G.age+' 岁，已达到 '+retireAge+' 岁退休年龄<br><br>最终职务：'+G.rankNames[G.rank]+'<br>执政年限：'+Math.floor(G.termMonths/12)+'年<br>最终GDP：'+fmtMoney(G.gdp)+'<br>最终人口：'+G.population.toLocaleString()+'人</div></div>', [{text:'重新开始',class:'primary',action:function(){closeModal();location.reload();}}]);
   }
+}
+
+// ---------- 个人需求与想法系统 ----------
+function initPersonalNeeds() {
+  if (!G.personal.needs) {
+    G.personal.needs = {
+      housing: 30,      // 住房需求（结婚/孩子/职级提升时增加）
+      vehicle: 10,      // 购车需求（职级/通勤/面子）
+      marriage: 50,     // 结婚需求（25-35岁高峰）
+      child: 0,         // 生育需求（结婚后）
+      social: 40,       // 社交需求（维护关系）
+      consumption: 20,  // 消费需求（改善生活）
+    };
+    G.personal.married = false;
+    G.personal.spouse = null;
+    G.personal.children = 0;
+  }
+}
+
+// 根据年份计算房价（元/平）
+function getHousePrice(year) {
+  if (year < 1985) return 200 + (year - 1980) * 30;           // 1980-1985: 200-350元/平（福利分房时代）
+  if (year < 1990) return 400 + (year - 1985) * 80;           // 1985-1990: 400-800元/平（房改起步）
+  if (year < 1995) return 900 + (year - 1990) * 200;          // 1990-1995: 900-1900元/平
+  if (year < 2000) return 2000 + (year - 1995) * 400;         // 1995-2000: 2000-4000元/平
+  if (year < 2005) return 4500 + (year - 2000) * 600;         // 2000-2005: 4500-7500元/平
+  if (year < 2010) return 8000 + (year - 2005) * 1500;        // 2005-2010: 8000-15500元/平
+  if (year < 2015) return 16000 + (year - 2010) * 2000;       // 2010-2015: 16000-26000元/平
+  if (year < 2020) return 27000 + (year - 2015) * 1500;       // 2015-2020: 27000-34500元/平
+  return 35000 + (year - 2020) * 500;                           // 2020+: 35000+元/平
+}
+
+// 根据年份计算车价（元）
+function getCarPrice(year, level) {
+  var basePrices = {
+    '经济型': [30000, 80000, 60000, 50000, 45000, 40000, 35000, 30000, 25000],
+    '中档型': [80000, 150000, 120000, 100000, 90000, 80000, 70000, 60000, 50000],
+    '豪华型': [200000, 400000, 350000, 300000, 280000, 250000, 220000, 200000, 180000],
+  };
+  var eraIdx = year < 1985 ? 0 : year < 1990 ? 1 : year < 1995 ? 2 : year < 2000 ? 3 : year < 2005 ? 4 : year < 2010 ? 5 : year < 2015 ? 6 : year < 2020 ? 7 : 8;
+  return basePrices[level] ? basePrices[level][eraIdx] : basePrices['经济型'][eraIdx];
+}
+
+// 每月更新个人需求
+function updatePersonalNeeds() {
+  initPersonalNeeds();
+  var needs = G.personal.needs;
+
+  // 结婚需求：25-35岁高峰，未婚时增加
+  if (!G.personal.married) {
+    if (G.age >= 25 && G.age <= 35) {
+      needs.marriage = Math.min(100, needs.marriage + 5);
+    } else if (G.age > 35) {
+      needs.marriage = Math.max(20, needs.marriage - 2);
+    }
+  } else {
+    needs.marriage = 0;
+  }
+
+  // 住房需求：结婚后、有孩子、职级提升时增加
+  if (G.personal.married) needs.housing = Math.min(100, needs.housing + 3);
+  if (G.personal.children > 0) needs.housing = Math.min(100, needs.housing + 2);
+  if (G.rank >= 2) needs.housing = Math.min(100, needs.housing + 1); // 处级以上想换房
+
+  // 购车需求：职级提升、有家庭后增加
+  if (G.rank >= 1) needs.vehicle = Math.min(100, needs.vehicle + 2); // 副处以上想配车
+  if (G.personal.married) needs.vehicle = Math.min(100, needs.vehicle + 1);
+  if (G.year >= 2000) needs.vehicle = Math.min(100, needs.vehicle + 2); // 汽车普及时代
+
+  // 生育需求：结婚后增加
+  if (G.personal.married && G.personal.children < 3) {
+    needs.child = Math.min(100, needs.child + 3);
+  }
+
+  // 社交需求：随职级增加
+  needs.social = Math.min(100, 30 + G.rank * 8);
+
+  // 消费需求：随工资增加
+  needs.consumption = Math.min(100, 15 + G.personal.salary * 2);
+}
+
+// 尝试结婚
+function tryMarry() {
+  if (G.personal.married) return false;
+  if (G.personal.needs.marriage < 60) return false;
+  if (G.age < 22) return false;
+
+  var spouses = ['李淑芬','王秀英','张桂兰','刘美玲','陈淑华','杨玉梅','赵彩霞','孙丽娟'];
+  var spouse = spouses[Math.floor(Math.random()*spouses.length)];
+  G.personal.married = true;
+  G.personal.spouse = spouse;
+  G.personal.needs.marriage = 0;
+  G.personal.stress = Math.max(0, G.personal.stress - 10);
+  addLog('个人', '💒 您与'+spouse+'结婚了！住房需求增加', 'success');
+  return true;
+}
+
+// 尝试生育
+function tryHaveChild() {
+  if (!G.personal.married) return false;
+  if (G.personal.children >= 3) return false;
+  if (G.personal.needs.child < 70) return false;
+
+  G.personal.children++;
+  G.personal.needs.child = 0;
+  G.personal.needs.housing = Math.min(100, G.personal.needs.housing + 20);
+  G.personal.stress = Math.min(100, G.personal.stress + 5);
+  var childNames = ['伟','芳','娜','敏','静','强','磊','洋','艳','勇'];
+  addLog('家庭', '👶 您的孩子出生了！（第'+G.personal.children+'个）', 'success');
+  return true;
+}
+
+// 尝试买房（基于需求，不是有钱就买）
+function tryBuyHouse() {
+  if (G.personal.needs.housing < 70) return false;
+  var pricePerSqm = getHousePrice(G.year);
+  var area = G.personal.children > 0 ? 120 : 80;
+  var totalPrice = pricePerSqm * area;
+  var totalWan = totalPrice / 10000;
+
+  // 需要存款达到房价的30%（首付）
+  if (G.personal.deposit < totalWan * 0.3) return false;
+
+  G.personal.deposit -= totalWan * 0.3; // 首付
+  if (!G.personal.assets) G.personal.assets = [];
+  G.personal.assets.push({type:'房产',value:totalWan,area:area,pricePerSqm:pricePerSqm,year:G.year});
+  G.personal.needs.housing = 0;
+  G.personal.stress = Math.max(0, G.personal.stress - 15);
+  addLog('个人', '🏠 购买'+area+'平米住房，单价'+pricePerSqm.toFixed(0)+'元/平，首付'+(totalWan*0.3).toFixed(1)+'万元', 'success');
+  return true;
+}
+
+// 尝试买车（基于需求）
+function tryBuyCar() {
+  if (G.personal.needs.vehicle < 60) return false;
+  var level = G.rank >= 4 ? '豪华型' : G.rank >= 2 ? '中档型' : '经济型';
+  var price = getCarPrice(G.year, level);
+  var priceWan = price / 10000;
+
+  if (G.personal.deposit < priceWan) return false;
+
+  G.personal.deposit -= priceWan;
+  if (!G.personal.assets) G.personal.assets = [];
+  G.personal.assets.push({type:'车辆',value:priceWan,level:level,year:G.year});
+  G.personal.needs.vehicle = 0;
+  G.personal.stress = Math.max(0, G.personal.stress - 8);
+  addLog('个人', '🚗 购买'+level+'轿车，价格'+priceWan.toFixed(1)+'万元', 'success');
+  return true;
 }
 
 // ---------- 申请晋升 ----------
@@ -2289,8 +2437,10 @@ ${recentLogs}
     {"type": "project", "project_type": 0, "reason": "修建道路改善基建"},
     {"type": "take_exam", "reason": "参加学历考试提升自己"},
     {"type": "apply_promotion", "reason": "条件满足时申请晋升"},
-    {"type": "buy_house", "reason": "存款充足时购买房产"},
-    {"type": "buy_car", "reason": "有一定存款后购买车辆"},
+    {"type": "marry", "reason": "25-35岁产生结婚想法时结婚"},
+    {"type": "have_child", "reason": "结婚后产生生育想法时要孩子"},
+    {"type": "buy_house", "reason": "结婚/有孩子/职级提升产生购房想法时买房"},
+    {"type": "buy_car", "reason": "职级提升/汽车普及时代产生购车想法时买车"},
     {"type": "buy_stock", "reason": "1991年后用闲钱投资股票"},
     {"type": "handle_government", "reason": "处理政务（人事/工程/工商/申报）"},
     {"type": "handle_event", "reason": "及时处理突发事件"}
@@ -2318,7 +2468,7 @@ tax_break税收优惠 talent_intro人才引进 infra_invest基建投资 env_prot
 - 每年1月有年度考核和历史事件
 - 禁止使用任何调试功能或控制台
 - 目标：在任期内发展经济、改善民生、获得晋升，最终达到最高职务
-- 个人生活：存款充足时要买房买车，1991年后可投资股票，注意劳逸结合
+- 个人生活：不是有钱就花！要先产生想法（需求强度达到阈值）才行动：25-35岁想结婚、结婚后想生孩子、结婚/有孩子/升职后想买房、升职/汽车普及时代想买车、1991年后可用闲钱投资股票。房价车价随年代变化很大，注意攒首付
 - 政务处理：定期审批企业注册、考核干部、推进工程招投标
 - 突发事件：及时处理activeEvents中的事件，不要让事件积压
 - 退休：达到退休年龄（60/65/70岁）游戏结束，要在退休前达成目标
@@ -2435,26 +2585,48 @@ function executeAIAction(action) {
       }
 
     case 'buy_house':
-      if (G.personal.deposit >= 1) {
-        G.personal.deposit -= 1;
-        if (!G.personal.assets) G.personal.assets = [];
-        G.personal.assets.push({type:'房产',value:1,year:G.year});
-        log('购买房产，支出1万元');
+      initPersonalNeeds();
+      if (tryBuyHouse()) {
+        log('产生购房想法并购买住房');
+        return true;
+      } else if (G.personal.needs.housing >= 70) {
+        log('有购房想法但存款不足（需首付30%），继续攒钱');
         return true;
       } else {
-        log('存款不足，无法买房');
+        log('暂无购房想法（需求强度'+Math.round(G.personal.needs.housing)+'%）');
         return false;
       }
 
     case 'buy_car':
-      if (G.personal.deposit >= 0.2) {
-        G.personal.deposit -= 0.2;
-        if (!G.personal.assets) G.personal.assets = [];
-        G.personal.assets.push({type:'车辆',value:0.2,year:G.year});
-        log('购买车辆，支出2000元');
+      initPersonalNeeds();
+      if (tryBuyCar()) {
+        log('产生购车想法并购买车辆');
+        return true;
+      } else if (G.personal.needs.vehicle >= 60) {
+        log('有购车想法但存款不足，继续攒钱');
         return true;
       } else {
-        log('存款不足，无法买车');
+        log('暂无购车想法（需求强度'+Math.round(G.personal.needs.vehicle)+'%）');
+        return false;
+      }
+
+    case 'marry':
+      initPersonalNeeds();
+      if (tryMarry()) {
+        log('产生结婚想法并结婚');
+        return true;
+      } else {
+        log('暂无结婚想法（需求强度'+Math.round(G.personal.needs.marriage)+'%）');
+        return false;
+      }
+
+    case 'have_child':
+      initPersonalNeeds();
+      if (tryHaveChild()) {
+        log('生育孩子');
+        return true;
+      } else {
+        log('暂无生育想法');
         return false;
       }
 
