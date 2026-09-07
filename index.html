@@ -70,7 +70,18 @@ function fmtYuan(n){if(n===undefined||n===null||isNaN(n))return '0';return '¥'+
 function fmtYuanNum(n){if(n===undefined||n===null||isNaN(n))return '0';return Math.round(n*10000).toLocaleString('zh-CN')}
 function fmtPct(n){return (n*100).toFixed(1)+'%'}function clamp(v,min,max){return Math.max(min,Math.min(max,v))}function rand(min,max){return Math.random()*(max-min)+min}function randInt(min,max){return Math.floor(rand(min,max+1))}function uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).substr(2,4)}
 var G=null;var projectSelectMode=false;var pendingProject=null;var roadStartPoint=null;var areaSelectStart=null;
-function defaultGame(){return{version:'v2.1',seed:Date.now(),rank:0,rankNames:['乡镇党委书记(正科)','县委常委/副县长(副处)','县长/县委书记(正处)','市委常委/副市长(副厅)','市长/市委书记(正厅)','省委常委/副省长(副部)','省长/省委书记/部长(正部)','政治局委员/副总理(副国)','政治局常委/总理(正国)'],rankShort:['正科','副处','正处','副厅','正厅','副部','正部','副国','正国'],birthYear:1950,age:30,termMonths:0,promotionAttempts:0,lastPromotionYear:1980,cityName:'河滨市',mayorName:'张为民',year:1980,month:1,day:1,hour:9,finance:2500,gdp:18000,population:400000,satisfaction:0.5,superiorEval:0.5,pollution:10,farmland:0,violationMonths:0,grid:[],buildingData:{},policy:{taxProperty:0.01,taxBusiness:0.05,taxIncome:0.03,eduRatio:1,healthRatio:1,infraRatio:1,justiceRatio:1,socialRatio:1,techRatio:1,envRatio:1,envSupervision:5,landFee:1,resettleStd:5,loanRate:0.05,reserveRate:0.1,credit:1,socialCoverage:0.6,subsistence:5,medicalReimb:0.7,pension:0.6},personal:{name:'张为民',deposit:0.02,salary:0.006,education:'大专',eduScore:0,ability:0,health:100,stress:0,corruptionRisk:0,assets:[],stocks:[],consumeLog:[],corruptionLog:[],achievements:[],bank:{currentDeposit:0,fixedDeposits:[],loans:[],creditScore:750,totalAssets:0,totalLiabilities:0}},stocks:[],stockHistory:{},stockPrices:{},cadres:[],projects:[],enterprises:[],personnelCooldown:0,projectCooldown:0,eventCooldown:0,termYears:0,performance:0,examRecords:[],lastSave:Date.now(),debts:[],investors:[],gameOver:false,gameOverReason:'',promoted:false,difficulty:'普通',initFinance:50000,educationIndex:30,medicalIndex:25,securityIndex:70,politicalReputation:50,personalAccount:0,livelihood:{education:30,medical:25,employment:60,housing:40,socialSecurity:35},populationStructure:{labor:6000,elderly:800,children:3200,birthRate:2,deathRate:0.6,naturalGrowth:1.4,inflow:0,outflow:0},financeDetail:{taxRevenue:30000,landRevenue:5000,transferPayment:10000,adminFee:5000,econConstruction:15000,education:9000,medical:6000,admin:7500,socialSecurity:5000,publicSecurity:4000,environmental:2000,other:1500},giniCoefficient:0.35,taxPolicy:{agriculturalTax:true,businessTax:true,valueAddedTax:false,personalIncomeTax:true,propertyTax:false,taxSharingReform:false},relationships:{superior:{name:'老领导',relation:50,trust:50},superior2:{name:'上级领导',relation:30,trust:30},colleagues:[{name:'李书记',relation:40,trust:40,hostile:false},{name:'王市长',relation:35,trust:35,hostile:false}],subordinates:[{name:'张秘书',relation:60,trust:65,loyal:true},{name:'刘局长',relation:45,trust:50,loyal:false}],entrepreneurs:[{name:'陈总',relation:30,trust:25,wealth:5000},{name:'赵董',relation:20,trust:15,wealth:8000}],faction:null},eventState:{lastEventYear:1980,eventCooldown:0,activeEvents:[],disasterHistory:[]},antiCorruption:{inspectionCount:0,reportCount:0,evidenceLevel:0,protector:null,overseasAssets:0,familyBusiness:false},realEstate:{housingPrice:2000,priceIncomeRatio:4, housingInventory:1000,salesArea:0,landSold:0,propertyMarketHeat:50,bubbleRisk:10},investment:{totalInvestment:0,projectCount:0,enterprises:[],successRate:0.3,annualTarget:50000},cityLevel:1,cityLevelName:['小城镇','小城市','中等城市','大城市','特大城市','超大城市'],landAuctionHistory:[],ending:{type:null,title:null,description:null,score:0},airQuality:35,waterQuality:85,greenCoverage:15,noiseLevel:45,trafficCongestion:20,powerSupply:500,powerDemand:300,waterSupply:400,waterDemand:250,sewageCapacity:200,sewageDemand:150,garbageCapacity:100,garbageDemand:80,commercialJobs:500,commercialJobDemand:800,industrialJobs:300,industrialJobDemand:600,powerCooldown:{bribery:0,donation:0,nepotism:0},adminStatus:{level:0,mergedTowns:[],applied:false},triggeredEvents:[],farmlandLimit:0.13,totalTiles:2500,logs:[],investorQueue:[]}}// ---------- 工具模式 ----------
+function defaultGame(){return{version:'v2.1',seed:Date.now(),rank:0,rankNames:['乡镇党委书记(正科)','县委常委/副县长(副处)','县长/县委书记(正处)','市委常委/副市长(副厅)','市长/市委书记(正厅)','省委常委/副省长(副部)','省长/省委书记/部长(正部)','政治局委员/副总理(副国)','政治局常委/总理(正国)'],rankShort:['正科','副处','正处','副厅','正厅','副部','正部','副国','正国'],birthYear:1950,age:30,termMonths:0,promotionAttempts:0,lastPromotionYear:1980,cityName:'河滨市',mayorName:'张为民',year:1980,month:1,day:1,hour:9,finance:2500,gdp:18000,population:400000,satisfaction:0.5,superiorEval:0.5,pollution:10,farmland:0,violationMonths:0,grid:[],buildingData:{},policy:{taxProperty:0.01,taxBusiness:0.05,taxIncome:0.03,eduRatio:1,healthRatio:1,infraRatio:1,justiceRatio:1,socialRatio:1,techRatio:1,envRatio:1,envSupervision:5,landFee:1,resettleStd:5,loanRate:0.05,reserveRate:0.1,credit:1,socialCoverage:0.6,subsistence:5,medicalReimb:0.7,pension:0.6},personal:{name:'张为民',deposit:0.02,salary:0.006,education:'大专',eduScore:0,ability:0,health:100,stress:0,corruptionRisk:0,assets:[],stocks:[],consumeLog:[],corruptionLog:[],achievements:[],bank:{currentDeposit:0,fixedDeposits:[],loans:[],creditScore:750,totalAssets:0,totalLiabilities:0}},stocks:[],stockHistory:{},stockPrices:{},cadres:[],projects:[],enterprises:[],personnelCooldown:0,projectCooldown:0,eventCooldown:0,termYears:0,performance:0,examRecords:[],lastSave:Date.now(),debts:[],investors:[],gameOver:false,gameOverReason:'',promoted:false,difficulty:'普通',initFinance:50000,educationIndex:30,medicalIndex:25,securityIndex:70,politicalReputation:50,personalAccount:0,livelihood:{education:30,medical:25,employment:60,housing:40,socialSecurity:35},populationStructure:{labor:6000,elderly:800,children:3200,birthRate:2,deathRate:0.6,naturalGrowth:1.4,inflow:0,outflow:0},financeDetail:{taxRevenue:30000,landRevenue:5000,transferPayment:10000,adminFee:5000,econConstruction:15000,education:9000,medical:6000,admin:7500,socialSecurity:5000,publicSecurity:4000,environmental:2000,other:1500},giniCoefficient:0.35,taxPolicy:{agriculturalTax:true,businessTax:true,valueAddedTax:false,personalIncomeTax:true,propertyTax:false,taxSharingReform:false},relationships:{superior:{name:'老领导',relation:50,trust:50},superior2:{name:'上级领导',relation:30,trust:30},colleagues:[{name:'李书记',relation:40,trust:40,hostile:false},{name:'王市长',relation:35,trust:35,hostile:false}],subordinates:[{name:'张秘书',relation:60,trust:65,loyal:true},{name:'刘局长',relation:45,trust:50,loyal:false}],entrepreneurs:[{name:'陈总',relation:30,trust:25,wealth:5000},{name:'赵董',relation:20,trust:15,wealth:8000}],faction:null},eventState:{lastEventYear:1980,eventCooldown:0,activeEvents:[],disasterHistory:[]},antiCorruption:{inspectionCount:0,reportCount:0,evidenceLevel:0,protector:null,overseasAssets:0,familyBusiness:false},realEstate:{housingPrice:2000,priceIncomeRatio:4, housingInventory:1000,salesArea:0,landSold:0,propertyMarketHeat:50,bubbleRisk:10},investment:{totalInvestment:0,projectCount:0,enterprises:[],successRate:0.3,annualTarget:50000},cityLevel:1,cityLevelName:['小城镇','小城市','中等城市','大城市','特大城市','超大城市'],landAuctionHistory:[],ending:{type:null,title:null,description:null,score:0},airQuality:35,waterQuality:85,greenCoverage:15,noiseLevel:45,trafficCongestion:20,powerSupply:500,powerDemand:300,waterSupply:400,waterDemand:250,sewageCapacity:200,sewageDemand:150,garbageCapacity:100,garbageDemand:80,commercialJobs:500,commercialJobDemand:800,industrialJobs:300,industrialJobDemand:600,powerCooldown:{bribery:0,donation:0,nepotism:0},adminStatus:{level:0,mergedTowns:[],applied:false},triggeredEvents:[],farmlandLimit:0.13,totalTiles:2500,logs:[],investorQueue:[],
+housing:{averagePrice:800,priceIncomeRatio:4,rentPriceRatio:4.5,supply:1000,demand:1200,speculationIndex:0.2,rentalYield:0.04,vacancyRate:0.08,landSupply:50,landPrice:100,landRevenue:0,auctionHistory:[]},
+debt:{balance:0,annualRepayment:0,creditRating:'AA',defaultRisk:0.02,interestRate:0.04,repaymentCapacity:0.8},
+industryPrices:{},industryClusters:{},ioMultiplier:1.0,
+factions:{'本土派':{power:0.35,departments:['住建局','交通局','水利局'],leader:null,relations:{}},'外来派':{power:0.25,departments:['发改委','商务局','科技局'],leader:null,relations:{}},'学院派':{power:0.20,departments:['教育局','卫生局','人社局'],leader:null,relations:{}},'军旅派':{power:0.15,departments:['公安局','应急局','武装部'],leader:null,relations:{}},'秘书帮':{power:0.05,departments:['党委办','政府办','组织部'],leader:null,relations:{}}},
+factionTension:0.2,factionBalance:0.6,
+centralPolicy:{year:1980,focus:'gdp',assessmentWeights:{gdp:0.35,environment:0.15,livelihood:0.20,stability:0.15,innovation:0.15},pressure:0.3,transferPayment:5000,specialFunds:[]},
+annualAssessment:{score:0,grade:'合格',feedback:''},
+eventQueue:[],activeEventChains:[],externalShocks:[],shockHistory:[],
+citizenBehaviorLog:[],socialTension:0.2,
+aiMemory:{lessons:[],strategyHistory:[],bestPractices:{}}
+}}// ---------- 工具模式 ----------
 var currentTool='view';var buildType=3;var currentLayer='normal';
 function switchBuildCategory(cat){var btns=document.querySelectorAll('.build-cat-btn');btns.forEach(function(btn){if(btn.dataset.cat===cat){btn.style.background='#007aff';btn.style.color='#fff';btn.style.borderColor='#007aff';}else{btn.style.background='#f2f2f7';btn.style.color='#1c1c1e';btn.style.borderColor='#d1d1d6';}});var panelIds=['buildCatBasic','buildCatRoad','buildCatInfra','buildCatEdu','buildCatService'];var catMap={basic:'buildCatBasic',road:'buildCatRoad',infra:'buildCatInfra',edu:'buildCatEdu',service:'buildCatService'};panelIds.forEach(function(id){var panel=document.getElementById(id);if(panel)panel.style.display='none';});var targetId=catMap[cat];var target=document.getElementById(targetId);if(target){target.style.display='flex';target.style.flexWrap='wrap';target.style.gap='6px';}updateBuildUnlockStatus();}
 function updateBuildUnlockStatus(){var currentLevel=getAdminLevel();var levelNames=['乡','镇','县城','县级市','地级市','副省级市','直辖市'];var btns=document.querySelectorAll('.btype');btns.forEach(function(btn){var unlockLevel=parseInt(btn.dataset.unlock||'0');if(unlockLevel>currentLevel){btn.style.opacity='0.3';btn.style.filter='grayscale(100%)';btn.style.cursor='not-allowed';btn.style.pointerEvents='none';var baseTitle=btn.title.replace(/（.*?解锁）/,'');btn.title=baseTitle+'（'+levelNames[unlockLevel]+'解锁，当前：'+levelNames[currentLevel]+'）';}else{btn.style.opacity='1';btn.style.filter='none';btn.style.cursor='pointer';btn.style.pointerEvents='auto';}});}
@@ -986,7 +997,26 @@ document.querySelectorAll('.tab-group').forEach(function(group){var activeIndex=
 var SAVE_KEY='sscd_save_v8';
 function autoSave(){if(!G)return;try{G.lastSave=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(G));}catch(e){console.warn('自动存档失败:',e);}}
 function saveGame(){if(!G){addLog('系统',' 游戏未开始，无法存档','warn');return;}try{G.lastSave=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(G));addLog('系统','手动存档成功','success');renderLogs();}catch(e){showModal('存档失败','<div style="color:#e74c5e;">存档失败: '+e.message+'</div>',[{text:'确定',class:'',action:closeModal}]);}}
-function loadGame(){try{var data=localStorage.getItem(SAVE_KEY);if(!data){showModal('读取存档','<div>没有找到存档记录。</div>',[{text:'新建游戏',class:'primary',action:function(){closeModal();showStartScreen();}},{text:'关闭',class:'',action:closeModal}]);return;}G=JSON.parse(data);if(G.personal&&G.personal.stocks){G.personal.stocks=G.personal.stocks.filter(function(s){return s.shares>0;});}if(!G.personal.stocks)G.personal.stocks=[];if(!G.stockHistory)G.stockHistory={};if(!G.stockPrices)G.stockPrices={};if(!G.buildingData)G.buildingData={};if(!G.logs)G.logs=[];if(!G.debts)G.debts=[];if(!G.citizens||!G.society){initSociety();addLog('系统','检测到旧存档，已初始化社会运行系统','info');}loadDeepSeekKey();addLog('系统','读取存档成功，欢迎回来，'+G.mayorName+'！','success');markPollutionDirty();renderAll();closeModal();}catch(e){showModal('存档损坏','<div style="color:#e74c5e;">存档数据损坏，无法读取。<br>是否开始新游戏？</div>',[{text:'新建游戏',class:'primary',action:function(){closeModal();showStartScreen();}},{text:'关闭',class:'',action:closeModal}]);}}
+function loadGame(){try{var data=localStorage.getItem(SAVE_KEY);if(!data){showModal('读取存档','<div>没有找到存档记录。</div>',[{text:'新建游戏',class:'primary',action:function(){closeModal();showStartScreen();}},{text:'关闭',class:'',action:closeModal}]);return;}G=JSON.parse(data);if(G.personal&&G.personal.stocks){G.personal.stocks=G.personal.stocks.filter(function(s){return s.shares>0;});}if(!G.personal.stocks)G.personal.stocks=[];if(!G.stockHistory)G.stockHistory={};if(!G.stockPrices)G.stockPrices={};if(!G.buildingData)G.buildingData={};if(!G.logs)G.logs=[];if(!G.debts)G.debts=[];if(!G.citizens||!G.society){initSociety();addLog('系统','检测到旧存档，已初始化社会运行系统','info');}
+// 补全新字段
+var _dg=defaultGame();
+if(!G.housing)G.housing=_dg.housing;
+if(!G.debt)G.debt=_dg.debt;
+if(!G.industryPrices)G.industryPrices={};
+if(!G.industryClusters)G.industryClusters={};
+if(!G.ioMultiplier)G.ioMultiplier=1.0;
+if(!G.factions)G.factions=_dg.factions;
+if(!G.factionTension)G.factionTension=0.2;
+if(!G.factionBalance)G.factionBalance=0.6;
+if(!G.centralPolicy)G.centralPolicy=_dg.centralPolicy;
+if(!G.annualAssessment)G.annualAssessment={score:0,grade:'合格',feedback:''};
+if(!G.eventQueue)G.eventQueue=[];
+if(!G.activeEventChains)G.activeEventChains=[];
+if(!G.citizenBehaviorLog)G.citizenBehaviorLog=[];
+if(!G.socialTension)G.socialTension=0.2;
+if(!G.aiMemory)G.aiMemory={lessons:[],strategyHistory:[],bestPractices:{}};
+// 补全市民需求字段
+if(G.citizens){G.citizens.forEach(function(c){if(!c.needs)c.needs={survival:0.7,economic:0.5,social:0.3,esteem:0.2,selfActual:0.1};if(!c.behaviorLog)c.behaviorLog=[];if(c.monthsUnemployed===undefined)c.monthsUnemployed=0;});}loadDeepSeekKey();addLog('系统','读取存档成功，欢迎回来，'+G.mayorName+'！','success');markPollutionDirty();renderAll();closeModal();}catch(e){showModal('存档损坏','<div style="color:#e74c5e;">存档数据损坏，无法读取。<br>是否开始新游戏？</div>',[{text:'新建游戏',class:'primary',action:function(){closeModal();showStartScreen();}},{text:'关闭',class:'',action:closeModal}]);}}
 function deleteSave(){showModal('确认删除','<div style="color:#e74c5e;">确定要删除存档吗？此操作不可撤销！</div>',[{text:'确认删除',class:'',action:function(){localStorage.removeItem(SAVE_KEY);addLog('系统',' 存档已删除','warn');closeModal();renderLogs();}},{text:'取消',class:'primary',action:closeModal}]);}
 // ---------- 调试控制台 ----------
 var debugVisible=false;
@@ -1193,7 +1223,9 @@ function createCitizen(age, gender, education) {
     unemployed: age >= 18 && age < 60 && Math.random() < 0.08,
     monthsUnemployed: 0,
     medicalExpense: 0,
-    lifeEvents: []
+    lifeEvents: [],
+    needs: {survival:0.7,economic:0.5,social:0.3,esteem:0.2,selfActual:0.1},
+    behaviorLog: []
   };
 }
 
@@ -1393,6 +1425,289 @@ function assignJobs() {
 }
 
 // ---------- 月度社会更新 ----------
+// ========== 第一批：市民需求驱动系统 ==========
+function updateCitizenNeeds(citizen){
+  if(!citizen.isAlive)return;
+  var avgWage=(G.society&&G.society.averageWage)||3000;
+  // 生存需求
+  var survivalBase=0.7;
+  if(citizen.income<1000)survivalBase-=0.2;
+  if(citizen.income<500)survivalBase-=0.3;
+  if(citizen.health<30)survivalBase-=0.2;
+  if(citizen.unemployed)survivalBase-=0.15;
+  if(G.housing&&G.housing.priceIncomeRatio>8)survivalBase-=0.1;
+  citizen.needs.survival=clamp(survivalBase+Math.random()*0.1,0,1);
+  // 经济需求
+  var economicBase=0.5;
+  if(citizen.income>avgWage*1.2)economicBase+=0.3;
+  else if(citizen.income>avgWage)economicBase+=0.1;
+  else if(citizen.income<avgWage*0.7)economicBase-=0.2;
+  if(citizen.unemployed)economicBase-=0.3;
+  citizen.needs.economic=clamp(economicBase+Math.random()*0.1,0,1);
+  // 社交需求
+  var socialBase=0.3;
+  if(citizen.maritalStatus==='已婚')socialBase+=0.2;
+  if(citizen.children&&citizen.children.length>0)socialBase+=0.1;
+  if(citizen.age>60&&(!citizen.children||citizen.children.length===0))socialBase-=0.15;
+  if(G.socialTension>0.6)socialBase-=0.1;
+  citizen.needs.social=clamp(socialBase+Math.random()*0.1,0,1);
+  // 尊重需求
+  var esteemBase=0.2;
+  var eduIdx=EDU_LEVELS.indexOf(citizen.education);
+  esteemBase+=(eduIdx/7)*0.3;
+  if(citizen.occupation&&['公务员','教师','医生','工程师','管理者'].indexOf(citizen.occupation)>=0)esteemBase+=0.2;
+  if(citizen.income>avgWage*2)esteemBase+=0.2;
+  citizen.needs.esteem=clamp(esteemBase+Math.random()*0.08,0,1);
+  // 自我实现
+  var selfBase=0.1;
+  if(citizen.age>25&&citizen.age<45)selfBase+=0.1;
+  if(citizen.education==='硕士'||citizen.education==='博士')selfBase+=0.2;
+  if(citizen.skills&&citizen.skills.技术>3)selfBase+=0.1;
+  citizen.needs.selfActual=clamp(selfBase+Math.random()*0.06,0,1);
+}
+
+function executeCitizenAction(citizen,action){
+  var log=citizen.name+'执行了'+action.type;
+  var avgWage=(G.society&&G.society.averageWage)||3000;
+  switch(action.type){
+    case 'job_search':
+      var jobProb=(G.livelihood.employment/100)*(0.5+EDU_LEVELS.indexOf(citizen.education)/14);
+      if(Math.random()<jobProb){
+        citizen.unemployed=false;
+        citizen.income=Math.round(avgWage*(0.6+Math.random()*0.4));
+        citizen.monthsUnemployed=0;
+        citizen.happiness=clamp(citizen.happiness+10,0,100);
+        log+='→找到工作，月收入'+citizen.income;
+      }else{
+        citizen.monthsUnemployed=(citizen.monthsUnemployed||0)+1;
+        citizen.stress=clamp(citizen.stress+3,0,100);
+        log+='→未找到工作';
+      }
+      break;
+    case 'apply_subsidy':
+      if(G.finance>100){
+        var amt=Math.min(2,G.finance*0.001);
+        G.finance-=amt;
+        citizen.savings+=amt*10000;
+        citizen.happiness=clamp(citizen.happiness+5,0,100);
+        log+='→获得补贴'+Math.round(amt*10000)+'元';
+      }
+      break;
+    case 'skill_upgrade':
+      if(citizen.savings>5000){
+        citizen.savings-=5000;
+        var gain=Math.floor(Math.random()*3)+1;
+        citizen.skills.技术=(citizen.skills.技术||0)+gain;
+        citizen.income=Math.round(citizen.income*(1+0.05*gain));
+        log+='→技能提升';
+      }
+      break;
+    case 'find_partner':
+      if(citizen.age>=22&&citizen.maritalStatus==='未婚'){
+        citizen.maritalStatus='已婚';
+        citizen.happiness=clamp(citizen.happiness+15,0,100);
+        citizen.needs.social=0.1;
+        log+='→结婚';
+      }
+      break;
+    case 'have_child':
+      if(citizen.gender==='女'&&citizen.age>=20&&citizen.age<=40&&citizen.maritalStatus==='已婚'){
+        var bp=0.3;
+        if(G.year<2016)bp*=0.4;
+        if(G.year>=2016)bp*=1.2;
+        if(Math.random()<bp){
+          citizen.children.push('child_'+Date.now());
+          citizen.happiness=clamp(citizen.happiness+10,0,100);
+          citizen.stress=clamp(citizen.stress+8,0,100);
+          log+='→生育一个孩子';
+        }
+      }
+      break;
+    case 'start_business':
+      if(citizen.savings>20000){
+        var invest=Math.min(citizen.savings*0.5,50000);
+        citizen.savings-=invest;
+        if(Math.random()<0.3+(citizen.skills.管理||0)/20){
+          citizen.income=Math.round(citizen.income*1.5+invest*0.02);
+          citizen.happiness=clamp(citizen.happiness+20,0,100);
+          log+='→创业成功';
+          if(G.businesses&&G.businesses.length<200){
+            var nb=createBusiness('service','小微');
+            nb.name=citizen.name+'的企业';
+            G.businesses.push(nb);
+          }
+        }else{
+          citizen.savings=Math.max(0,citizen.savings-invest*0.3);
+          citizen.happiness=clamp(citizen.happiness-15,0,100);
+          citizen.stress=clamp(citizen.stress+20,0,100);
+          log+='→创业失败';
+        }
+      }
+      break;
+    case 'consume':
+      if(citizen.savings>1000){
+        var spend=Math.min(citizen.savings*0.1,5000);
+        citizen.savings-=spend;
+        citizen.happiness=clamp(citizen.happiness+3,0,100);
+        G.gdp+=spend/10000;
+        log+='→消费'+Math.round(spend)+'元';
+      }
+      break;
+  }
+  if(!citizen.behaviorLog)citizen.behaviorLog=[];
+  citizen.behaviorLog.push({year:G.year,month:G.month,action:log});
+  if(citizen.behaviorLog.length>20)citizen.behaviorLog.shift();
+  if(G.citizenBehaviorLog){
+    G.citizenBehaviorLog.push({year:G.year,month:G.month,citizen:citizen.name,log:log});
+    if(G.citizenBehaviorLog.length>100)G.citizenBehaviorLog.shift();
+  }
+}
+
+function citizenAct(citizen){
+  if(!citizen.isAlive||citizen.age<18)return;
+  var n=citizen.needs;
+  var action=null;
+  if(n.survival<0.35){
+    if(citizen.unemployed)action={type:'job_search',intensity:1-n.survival};
+    else if(citizen.income<500)action={type:'apply_subsidy',intensity:0.8};
+  }else if(n.economic<0.4){
+    if(citizen.unemployed)action={type:'job_search',intensity:0.6};
+    else if(citizen.income<((G.society&&G.society.averageWage)||3000)*0.8)action={type:'skill_upgrade',intensity:0.5};
+  }else if(n.social<0.3&&citizen.age>=22&&citizen.age<=40){
+    if(citizen.maritalStatus==='未婚')action={type:'find_partner',intensity:0.7};
+    else if(citizen.gender==='女'&&citizen.children.length<2)action={type:'have_child',intensity:0.5};
+  }else if(n.esteem>0.6||n.selfActual>0.5){
+    if(citizen.savings>20000&&citizen.age<45)action={type:'start_business',intensity:n.selfActual*0.8};
+    else action={type:'consume',intensity:0.3};
+  }else if(Math.random()<0.05){
+    action={type:'consume',intensity:0.1};
+  }
+  if(action)executeCitizenAction(citizen,action);
+}
+
+// ========== 第一批：住房市场动态模型 ==========
+function updateHousingMarket(){
+  if(!G.housing)return;
+  // 需求
+  var baseDemand=G.population*0.001;
+  var investDemand=G.housing.speculationIndex*500;
+  G.housing.demand=baseDemand+investDemand;
+  // 供给（最低100套防止除零）
+  var resBuild=0;try{resBuild=(countBuildingType(3)||0)+(countBuildingType(36)||0);}catch(e){resBuild=100;}
+  G.housing.supply=Math.max(100,resBuild*120*(1-G.housing.vacancyRate));
+  // 价格（限制波动范围）
+  var sdRatio=G.housing.supply/Math.max(1,G.housing.demand);
+  var priceChange=(1/Math.max(0.1,sdRatio)-1)*0.15;
+  priceChange=clamp(priceChange,-0.1,0.15);
+  priceChange+=G.housing.speculationIndex*0.08;
+  if(G.year>=2016){priceChange*=0.7;G.housing.speculationIndex=Math.max(0,G.housing.speculationIndex-0.01);}
+  if(!G.housing.averagePrice||isNaN(G.housing.averagePrice))G.housing.averagePrice=800;
+  G.housing.averagePrice*=(1+priceChange);
+  G.housing.averagePrice=Math.max(200,Math.min(200000,G.housing.averagePrice));
+  // 房价收入比
+  var medianIncome=(G.society&&G.society.medianIncome)||((G.society&&G.society.averageWage)||3000)||3000;
+  G.housing.priceIncomeRatio=G.housing.averagePrice/Math.max(1,medianIncome*12)*100;
+  G.housing.priceIncomeRatio=clamp(G.housing.priceIncomeRatio,1,50);
+  // 租售比
+  G.housing.rentPriceRatio=3.6;
+  // 空置率
+  var targetVac=0.06+G.housing.speculationIndex*0.15;
+  G.housing.vacancyRate+=(targetVac-G.housing.vacancyRate)*0.05;
+  G.housing.vacancyRate=clamp(G.housing.vacancyRate,0.01,0.5);
+  // 高房价影响
+  if(G.housing.priceIncomeRatio>10){
+    G.satisfaction=clamp(G.satisfaction-0.002,0,1);
+    var outflow=Math.floor(G.population*0.0003*(G.housing.priceIncomeRatio-10));
+    G.population=Math.max(1000,G.population-outflow);
+  }
+  if(G.housing.priceIncomeRatio<5){
+    var inflow=Math.floor(G.population*0.0002*(5-G.housing.priceIncomeRatio));
+    G.population+=inflow;
+  }
+}
+
+function buildSubsidizedHousing(count){
+  var cost=count*50;
+  if(cost>G.finance)return{success:false,msg:'财政不足'};
+  G.finance-=cost;
+  G.housing.supply+=count*80;
+  G.housing.demand-=count*0.5;
+  G.livelihood.housing=clamp(G.livelihood.housing+count*0.5,0,100);
+  G.satisfaction=clamp(G.satisfaction+0.005*count,0,1);
+  addLog('住房','建设'+count+'套保障房，支出'+cost+'万元','success');
+  return{success:true};
+}
+
+// ========== 第一批：产业链投入产出模型 ==========
+var INDUSTRY_IO_MATRIX={
+  agriculture:{inputs:{chemical:0.06,machine:0.03,service:0.02},outputs:{food:0.12,textile:0.06}},
+  food:{inputs:{agriculture:0.18,chemical:0.04,transport:0.06},outputs:{wholesale:0.15,hotel:0.08}},
+  textile:{inputs:{agriculture:0.10,chemical:0.12,machine:0.05},outputs:{wholesale:0.20}},
+  chemical:{inputs:{agriculture:0.02,service:0.04},outputs:{food:0.02,textile:0.05,machine:0.04}},
+  steel:{inputs:{chemical:0.05,transport:0.06},outputs:{machine:0.12,construction:0.18,auto:0.08}},
+  machine:{inputs:{steel:0.20,chemical:0.04},outputs:{construction:0.08,auto:0.10}},
+  electronic:{inputs:{machine:0.06,chemical:0.06,service:0.03},outputs:{machine:0.05,it:0.20}},
+  auto:{inputs:{steel:0.25,machine:0.10,electronic:0.06},outputs:{transport:0.12,wholesale:0.06}},
+  construction:{inputs:{steel:0.25,machine:0.08,transport:0.04},outputs:{realestate:0.20,service:0.05}},
+  wholesale:{inputs:{food:0.08,textile:0.06,transport:0.06},outputs:{service:0.10,hotel:0.04}},
+  transport:{inputs:{auto:0.10,service:0.03},outputs:{wholesale:0.06,construction:0.04}},
+  hotel:{inputs:{food:0.12,service:0.08},outputs:{service:0.06}},
+  finance:{inputs:{service:0.05},outputs:{service:0.08,realestate:0.06}},
+  realestate:{inputs:{construction:0.15,finance:0.05,service:0.04},outputs:{service:0.06}},
+  it:{inputs:{electronic:0.10,service:0.06},outputs:{finance:0.04,service:0.08}},
+  service:{inputs:{finance:0.03,it:0.02,transport:0.02},outputs:{}}
+};
+
+function updateIndustryPrices(){
+  for(var industry in INDUSTRY_IO_MATRIX){
+    var io=INDUSTRY_IO_MATRIX[industry];
+    var costIndex=1.0;
+    for(var input in io.inputs){
+      var inputPrice=G.industryPrices[input]||1.0;
+      costIndex+=io.inputs[input]*(inputPrice-1.0);
+    }
+    G.industryPrices[industry]=costIndex*(1+(Math.random()-0.5)*0.02);
+  }
+  var totalIO=0;
+  for(var ind in INDUSTRY_IO_MATRIX){
+    var i2=INDUSTRY_IO_MATRIX[ind];
+    for(var inp in i2.inputs)totalIO+=i2.inputs[inp];
+  }
+  G.ioMultiplier=1+totalIO*0.02;
+}
+
+function updateBusinessWithIO(){
+  if(!G.businesses)return;
+  G.industryClusters={};
+  G.businesses.forEach(function(b){G.industryClusters[b.industry]=(G.industryClusters[b.industry]||0)+1;});
+  G.businesses.forEach(function(b){
+    var io=INDUSTRY_IO_MATRIX[b.industry];
+    if(!io)return;
+    var upstreamCost=0;
+    for(var input in io.inputs){
+      var priceIdx=G.industryPrices[input]||1.0;
+      upstreamCost+=io.inputs[input]*priceIdx*b.revenue*0.15;
+    }
+    var downstreamDemand=1.0;
+    for(var output in io.outputs){
+      var demand=G.industryPrices[output]||1.0;
+      downstreamDemand+=io.outputs[output]*(demand-1.0)*0.5;
+    }
+    var clusterCount=G.industryClusters[b.industry]||1;
+    var clusterBonus=1+Math.min(0.15,Math.log(clusterCount)*0.05);
+    var wageCost=b.employees*b.wageLevel;
+    b.profit=b.revenue*downstreamDemand*clusterBonus-wageCost-upstreamCost;
+    var tax=Math.max(0,b.profit*b.taxRate+b.revenue*0.04);
+    G.finance+=tax/12;
+    if(b.profit>0){
+      b.revenue*=(1+b.growthRate/12*(1+G.ioMultiplier*0.1));
+      b.financialHealth=clamp(b.financialHealth+1,0,100);
+    }else{
+      b.financialHealth=clamp(b.financialHealth-2,0,100);
+    }
+  });
+}
+
 function updateSocietyMonthly() {
   if (!G || !G.citizens) return;
   // 更新人口缩放系数
@@ -1473,6 +1788,7 @@ function updateSocietyMonthly() {
   var scale = G.popScale || 250;
   G.population += Math.round((births - deaths) * scale);
   G.population = Math.max(1000, G.population);
+  // 第一批新系统调用见下方
   G.society.birthRate = births / G.citizens.filter(function(c) { return c.isAlive; }).length * 12;
   G.society.deathRate = deaths / G.citizens.filter(function(c) { return c.isAlive; }).length * 12;
 
@@ -1658,6 +1974,18 @@ function updateSocietyMonthly() {
       pollution: Math.round(G.pollution)
     });
   }
+
+  // ===== 第一批：市民需求驱动（30%采样）=====
+  var _aliveC=G.citizens.filter(function(c){return c.isAlive;});
+  var _sampleN=Math.floor(_aliveC.length*0.3);
+  for(var _si=0;_si<_sampleN;_si++){
+    var _sc=_aliveC[Math.floor(Math.random()*_aliveC.length)];
+    if(_sc){try{updateCitizenNeeds(_sc);if(Math.random()<0.3)citizenAct(_sc);}catch(e){}}
+  }
+  // ===== 第一批：住房市场 =====
+  try{updateHousingMarket();}catch(e){}
+  // ===== 第一批：产业链 =====
+  try{updateIndustryPrices();updateBusinessWithIO();}catch(e){}
 
   return { births: births, deaths: deaths, unemploymentRate: unemploymentRate, avgHappiness: avgHappiness };
 }
