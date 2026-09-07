@@ -1710,6 +1710,222 @@ function updateBusinessWithIO(){
   });
 }
 
+// ========== 第二批：事件链系统 ==========
+var EVENT_CHAINS = {
+  industrial_accident: {
+    name: '工业事故链',
+    trigger: {prob: 0.008, condition: function(){return G.businesses&&G.businesses.some(function(b){return b.industry==='chemical'||b.industry==='steel'||b.industry==='mining';});}},
+    chain: [
+      {id:'pollution_spill', delay:1, prob:0.7, severity:3, effect:function(){G.pollution=clamp(G.pollution+8,0,100);G.satisfaction=clamp(G.satisfaction-0.03,0,1);addLog('事件链','工业事故导致污染泄漏，污染+8','warn');}},
+      {id:'public_protest', delay:3, prob:0.5, condition:function(){return G.pollution>35;}, effect:function(){G.satisfaction=clamp(G.satisfaction-0.05,0,1);G.socialTension=clamp(G.socialTension+0.1,0,1);addLog('事件链','污染引发群众抗议，满意度-5%','danger');}},
+      {id:'gov_investigation', delay:5, prob:0.35, condition:function(){return G.socialTension>0.5;}, effect:function(){G.personal.corruptionRisk=clamp(G.personal.corruptionRisk+15,0,100);G.superiorEval=clamp(G.superiorEval-0.05,0,1);addLog('事件链','上级介入调查，廉政风险+15%','danger');}},
+      {id:'factory_shutdown', delay:2, prob:0.3, condition:function(){return G.pollution>50;}, effect:function(){if(G.businesses)G.businesses=G.businesses.filter(function(b){return Math.random()>0.2||(b.industry!=='chemical'&&b.industry!=='steel');});G.livelihood.employment=clamp(G.livelihood.employment-5,0,100);addLog('事件链','污染企业被关停，就业-5%','warn');}}
+    ]
+  },
+  recession: {
+    name: '经济衰退链',
+    trigger: {prob: 0.003, condition: function(){return G.year>=1990;}},
+    chain: [
+      {id:'export_drop', delay:2, prob:0.9, effect:function(){G.gdp*=0.97;G.livelihood.employment=clamp(G.livelihood.employment-3,0,100);addLog('事件链','出口下滑，GDP-3%','warn');}},
+      {id:'business_bankruptcy', delay:4, prob:0.6, effect:function(){if(G.businesses)G.businesses=G.businesses.filter(function(b){return Math.random()>0.15;});addLog('事件链','企业倒闭潮，15%企业退出','danger');}},
+      {id:'tax_revenue_drop', delay:6, prob:0.8, effect:function(){G.finance*=0.95;addLog('事件链','税收下降，财政-5%','warn');}},
+      {id:'social_unrest', delay:8, prob:0.3, condition:function(){return G.livelihood.employment<50;}, effect:function(){G.satisfaction=clamp(G.satisfaction-0.08,0,1);G.socialTension=clamp(G.socialTension+0.15,0,1);addLog('事件链','高失业引发社会动荡','danger');}}
+    ]
+  },
+  housing_bubble: {
+    name: '房地产泡沫链',
+    trigger: {prob: 0.005, condition: function(){return G.housing&&G.housing.priceIncomeRatio>8;}},
+    chain: [
+      {id:'bubble_burst', delay:6, prob:0.5, effect:function(){G.housing.averagePrice*=0.7;G.housing.speculationIndex=0.05;addLog('事件链','房价泡沫破裂，房价-30%','danger');}},
+      {id:'developer_bankruptcy', delay:8, prob:0.4, effect:function(){G.housing.supply=Math.max(100,G.housing.supply-200);G.finance=Math.max(0,G.finance-50);addLog('事件链','开发商资金链断裂','warn');}},
+      {id:'banking_crisis', delay:10, prob:0.25, effect:function(){G.debt.balance+=200;G.finance*=0.9;addLog('事件链','银行坏账增加，财政-10%','danger');}}
+    ]
+  },
+  pandemic: {
+    name: '疫情链',
+    trigger: {prob: 0.002, condition: function(){return G.year>=2000;}},
+    chain: [
+      {id:'lockdown', delay:1, prob:0.9, effect:function(){G.gdp*=0.95;G.satisfaction=clamp(G.satisfaction-0.04,0,1);addLog('事件链','疫情封控，GDP-5%','warn');}},
+      {id:'healthcare_crisis', delay:3, prob:0.4, effect:function(){G.medicalIndex=clamp(G.medicalIndex-10,0,100);addLog('事件链','医疗资源挤兑','danger');}},
+      {id:'economic_recovery', delay:12, prob:0.8, effect:function(){G.gdp*=1.06;G.satisfaction=clamp(G.satisfaction+0.04,0,1);addLog('事件链','经济复苏，GDP+6%','success');}}
+    ]
+  }
+};
+
+function triggerEventChain(chainId){
+  var chain=EVENT_CHAINS[chainId];
+  if(!chain)return;
+  if(chain.trigger.condition&&!chain.trigger.condition())return;
+  if(G.activeEventChains&&G.activeEventChains.some(function(c){return c.chainId===chainId;}))return;
+  var chainInstance={chainId:chainId,name:chain.name,startedAt:G.month,startedYear:G.year,events:chain.chain.map(function(e){return {id:e.id,delay:e.delay,prob:e.prob,severity:e.severity,condition:e.condition,effect:e.effect,triggered:false,scheduledAt:e.delay};}),completed:false};
+  if(!G.activeEventChains)G.activeEventChains=[];
+  G.activeEventChains.push(chainInstance);
+  addLog('事件链','事件链启动：'+chain.name,'danger');
+}
+
+function updateEventChains(){
+  if(!G.activeEventChains||G.activeEventChains.length===0)return;
+  G.activeEventChains.forEach(function(chain){
+    if(chain.completed)return;
+    var elapsed=(G.year-chain.startedYear)*12+(G.month-chain.startedAt);
+    chain.events.forEach(function(e){
+      if(e.triggered)return;
+      if(elapsed<e.scheduledAt)return;
+      if(e.condition&&!e.condition())return;
+      if(Math.random()>e.prob)return;
+      try{e.effect();e.triggered=true;}catch(err){console.log('事件链执行错误',err);}
+    });
+    var allTriggered=chain.events.every(function(e){return e.triggered;});
+    if(allTriggered||elapsed>60){chain.completed=true;addLog('事件链','事件链 '+chain.name+' 结束','info');}
+  });
+  G.activeEventChains=G.activeEventChains.filter(function(c){return !c.completed;});
+}
+
+// 外部冲击
+var EXTERNAL_SHOCKS=[
+  {id:'asian_financial_crisis',year:1997,name:'亚洲金融危机',effect:function(){G.gdp*=0.95;G.livelihood.employment=clamp(G.livelihood.employment-5,0,100);triggerEventChain('recession');}},
+  {id:'global_financial_crisis',year:2008,name:'全球金融危机',effect:function(){G.gdp*=0.92;G.finance*=0.9;G.livelihood.employment=clamp(G.livelihood.employment-8,0,100);triggerEventChain('recession');if(G.housing&&G.housing.priceIncomeRatio>6)triggerEventChain('housing_bubble');}},
+  {id:'european_debt_crisis',year:2011,name:'欧债危机',effect:function(){G.gdp*=0.98;}},
+  {id:'trade_war',year:2018,name:'中美贸易摩擦',effect:function(){G.gdp*=0.97;}},
+  {id:'covid19',year:2020,name:'新冠疫情',effect:function(){G.gdp*=0.90;G.satisfaction=clamp(G.satisfaction-0.06,0,1);G.livelihood.employment=clamp(G.livelihood.employment-10,0,100);triggerEventChain('pandemic');}},
+  {id:'geopolitical_conflict',year:2022,name:'地缘政治冲突',effect:function(){G.gdp*=0.98;G.inflation=(G.inflation||0.02)+0.02;}}
+];
+
+function checkExternalShocks(){
+  if(!G.shockHistory)G.shockHistory=[];
+  EXTERNAL_SHOCKS.forEach(function(shock){
+    if(G.year===shock.year&&G.shockHistory.indexOf(shock.id)<0){
+      G.shockHistory.push(shock.id);
+      try{shock.effect();}catch(e){}
+      addLog('外部冲击','外部冲击：'+shock.name,'danger');
+    }
+  });
+}
+
+// ========== 第二批：土地价值评估 ==========
+function evaluateLandValue(x,y){
+  var locationScore=0;
+  var centerDist=Math.sqrt(Math.pow(x-25,2)+Math.pow(y-25,2));
+  locationScore+=Math.max(0,1-centerDist/35)*0.4;
+  var nearbyScore=0;
+  for(var dy=-3;dy<=3;dy++){
+    for(var dx=-3;dx<=3;dx++){
+      var nx=x+dx,ny=y+dy;
+      if(nx<0||nx>=50||ny<0||ny>=50)continue;
+      var type=G.grid[ny]?G.grid[ny][nx]:0;
+      if(type===4||type===37)nearbyScore+=0.02;
+      if(type===22||type===27)nearbyScore+=0.03;
+      if(type===3||type===36)nearbyScore+=0.01;
+      if(type===2)nearbyScore+=0.01;
+    }
+  }
+  locationScore+=Math.min(0.3,nearbyScore);
+  var roadCount=0;
+  for(var dy2=-1;dy2<=1;dy2++){
+    for(var dx2=-1;dx2<=1;dx2++){
+      var nx2=x+dx2,ny2=y+dy2;
+      if(nx2<0||nx2>=50||ny2<0||ny2>=50)continue;
+      var t2=G.grid[ny2]?G.grid[ny2][nx2]:0;
+      if(t2===2)roadCount++;
+    }
+  }
+  locationScore+=roadCount*0.03;
+  var marketFactor=1+(G.housing?G.housing.speculationIndex*0.5:0);
+  var basePrice=50+locationScore*150;
+  return {price:Math.round(basePrice*marketFactor),locationScore:locationScore,marketFactor:marketFactor};
+}
+
+// 土地出让（增强版，与现有startLandAuction共存）
+function auctionLand(x,y,usage,far){
+  var valuation=evaluateLandValue(x,y);
+  var basePrice=valuation.price;
+  var farBonus=1+(far-1.5)*0.15;
+  var startPrice=Math.round(basePrice*farBonus);
+  var numBidders=3+Math.floor(Math.random()*5);
+  var bidders=[];
+  for(var i=0;i<numBidders;i++){
+    var bidderName=REAL_ESTATE_COMPANIES[i%REAL_ESTATE_COMPANIES.length];
+    var bidFactor=1+Math.random()*0.6;
+    bidders.push({name:bidderName,bid:Math.round(startPrice*bidFactor),quality:Math.random()});
+  }
+  bidders.sort(function(a,b){return b.bid-a.bid;});
+  var winner=bidders[0];
+  var finalPrice=winner.bid;
+  G.finance+=finalPrice;
+  G.housing.landRevenue=(G.housing.landRevenue||0)+finalPrice;
+  if(!G.housing.auctionHistory)G.housing.auctionHistory=[];
+  G.housing.auctionHistory.push({year:G.year,month:G.month,x:x,y:y,usage:usage,far:far,startPrice:startPrice,finalPrice:finalPrice,winner:winner.name});
+  if(finalPrice>startPrice*1.3){G.housing.speculationIndex=Math.min(1,G.housing.speculationIndex+0.02);}
+  addLog('土地','地块('+x+','+y+')出让，'+winner.name+'以'+finalPrice+'万竞得','success');
+  return {winner:winner,price:finalPrice,bidders:bidders};
+}
+
+// ========== 第二批：地方债务管理 ==========
+function updateDebt(){
+  if(!G.debt)G.debt={balance:0,creditRating:'AA',interestRate:0.04,repaymentCapacity:0.8};
+  // 月度利息
+  var monthlyInterest=G.debt.balance*G.debt.interestRate/12;
+  G.finance-=monthlyInterest;
+  // 偿债能力
+  var annualRevenue=G.finance*12;
+  G.debt.repaymentCapacity=(annualRevenue-1000)/Math.max(1,G.debt.balance*0.1);
+  // 信用评级
+  var ratingMap={'AAA':100,'AA':85,'A':70,'BBB':55,'BB':40,'B':25,'C':10};
+  var currentScore=ratingMap[G.debt.creditRating]||50;
+  var ratio=G.debt.balance/Math.max(1,annualRevenue);
+  if(ratio<0.5)currentScore=Math.min(100,currentScore+1);
+  else if(ratio<0.8)currentScore=Math.min(100,currentScore+0.5);
+  else if(ratio<1.0)currentScore=Math.max(0,currentScore-0.5);
+  else if(ratio<1.2)currentScore=Math.max(0,currentScore-1);
+  else if(ratio<1.5)currentScore=Math.max(0,currentScore-2);
+  else currentScore=Math.max(0,currentScore-3);
+  var newRating='C';
+  if(currentScore>90)newRating='AAA';
+  else if(currentScore>75)newRating='AA';
+  else if(currentScore>60)newRating='A';
+  else if(currentScore>45)newRating='BBB';
+  else if(currentScore>30)newRating='BB';
+  else if(currentScore>15)newRating='B';
+  if(newRating!==G.debt.creditRating){
+    addLog('财政','信用评级由 '+G.debt.creditRating+' 调整为 '+newRating,newRating==='AAA'||newRating==='AA'?'success':'warn');
+    G.debt.creditRating=newRating;
+  }
+  var ratingRates={'AAA':0.03,'AA':0.035,'A':0.045,'BBB':0.055,'BB':0.07,'B':0.09,'C':0.12};
+  G.debt.interestRate=ratingRates[G.debt.creditRating]||0.06;
+  // 债务危机
+  if(ratio>1.5&&G.debt.creditRating==='C'){
+    G.finance*=0.9;
+    G.superiorEval=clamp(G.superiorEval-0.05,0,1);
+    addLog('财政','债务危机！财政缩减10%，上级评价下降','danger');
+    if(ratio>2.0){
+      G.gameOver=true;
+      G.gameOverReason='地方债务违约，被上级接管！';
+      addLog('财政',G.gameOverReason,'danger');
+      if(typeof showGameOver==='function')showGameOver();
+    }
+  }
+}
+
+// 发行地方债
+function issueDebt(amount,term){
+  if(!G.debt)G.debt={balance:0,creditRating:'AA',interestRate:0.04,repaymentCapacity:0.8};
+  if(G.debt.creditRating==='C'){
+    addLog('财政','信用评级C级，无法发债','warn');
+    return false;
+  }
+  var maxDebt=G.finance*12*1.5;
+  if(G.debt.balance+amount>maxDebt){
+    addLog('财政','发债规模超出偿债能力上限','warn');
+    return false;
+  }
+  G.debt.balance+=amount;
+  G.finance+=amount;
+  if(!G.debts)G.debts=[];
+  G.debts.push({amount:amount,remaining:amount,monthly:amount/term,term:term,rate:G.debt.interestRate,year:G.year,month:G.month});
+  addLog('财政','发行地方债 '+amount+' 万元，期限'+term+'个月，利率'+(G.debt.interestRate*100).toFixed(1)+'%','success');
+  return true;
+}
+
 function updateSocietyMonthly() {
   if (!G || !G.citizens) return;
   // 更新人口缩放系数
@@ -1976,6 +2192,17 @@ function updateSocietyMonthly() {
       pollution: Math.round(G.pollution)
     });
   }
+
+  // ===== 第二批：事件链与外部冲击 =====
+  try{checkExternalShocks();}catch(e){}
+  if(Math.random()<0.01){
+    var chainIds=Object.keys(EVENT_CHAINS);
+    var selectedChain=chainIds[Math.floor(Math.random()*chainIds.length)];
+    try{triggerEventChain(selectedChain);}catch(e){}
+  }
+  try{updateEventChains();}catch(e){}
+  // ===== 第二批：地方债务 =====
+  try{updateDebt();}catch(e){}
 
   // ===== 第一批：市民需求驱动（30%采样）=====
   var _aliveC=G.citizens.filter(function(c){return c.isAlive;});
