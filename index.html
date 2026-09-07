@@ -115,10 +115,10 @@ function getBuildingBase(type){
     2:{cost:50,gdp:20,tax:2,pop:0,pollution:0,pollutionRange:0},
     3:{cost:200,gdp:100,tax:15,pop:500,pollution:2,pollutionRange:1},
     4:{cost:300,gdp:300,tax:40,pop:200,pollution:3,pollutionRange:1},
-    5:{cost:500,gdp:500,tax:60,pop:300,pollution:15,pollutionRange:3},
+    5:{cost:500,gdp:500,tax:60,pop:300,pollution:8,pollutionRange:3},
     6:{cost:80,gdp:10,tax:1,pop:0,pollution:-5,pollutionRange:2},
     7:{cost:0,gdp:0,tax:0,pop:0,pollution:0,pollutionRange:0},
-    8:{cost:800,gdp:200,tax:25,pop:50,pollution:20,pollutionRange:4},
+    8:{cost:800,gdp:200,tax:25,pop:50,pollution:10,pollutionRange:4},
     9:{cost:600,gdp:150,tax:20,pop:30,pollution:5,pollutionRange:2},
     10:{cost:1000,gdp:800,tax:100,pop:150,pollution:8,pollutionRange:2},
     11:{cost:300,gdp:80,tax:10,pop:0,pollution:2,pollutionRange:1},
@@ -140,7 +140,7 @@ function getBuildingBase(type){
     27:{cost:600,gdp:150,tax:18,pop:0,pollution:2,pollutionRange:1},
     28:{cost:120,gdp:30,tax:3,pop:10,pollution:0,pollutionRange:0},
     29:{cost:180,gdp:40,tax:4,pop:15,pollution:0,pollutionRange:0},
-    30:{cost:200,gdp:30,tax:3,pop:10,pollution:25,pollutionRange:4},
+    30:{cost:200,gdp:30,tax:3,pop:10,pollution:12,pollutionRange:4},
     31:{cost:100,gdp:40,tax:5,pop:0,pollution:1,pollutionRange:1},
     32:{cost:300,gdp:100,tax:12,pop:5,pollution:1,pollutionRange:1},
     33:{cost:250,gdp:60,tax:7,pop:0,pollution:0,pollutionRange:0},
@@ -455,7 +455,7 @@ function simulateAllOldCities(){
   updateNationStats();
 }
 
-function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*500/12;gdpAdd+=farmGdp;G.gdp+=gdpAdd;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
+function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*50/12;gdpAdd+=farmGdp;G.gdp=G.gdp*0.85+(gdpAdd*12)*0.15;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution-=G.pollution*0.15;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
   // 发放工资
   var monthlySalary = G.personal.salary || 0.006;
   G.personal.deposit += monthlySalary;
@@ -1367,7 +1367,7 @@ function calculateFinalScore(){
   return{grade:grade,title:title,score:totalScore,details:{avgGrowth:avgGrowth,avgSat:avgSat,avgPoll:avgPoll,cities:cities.length,gdpScore:gdpScore,satScore:satScore,envScore:envScore,stableScore:stableScore,careerScore:careerScore}};
 }
 
-function showGameOver(){var isWin=G.gameOverReason.includes('胜利');var final=calculateFinalScore();var html='<div style="text-align:center;padding:12px 0;">';html+='<div style="font-size:48px;margin-bottom:8px;">'+(isWin?'🏆':'⚰')+'</div>';html+='<div style="font-size:20px;font-weight:600;color:'+(isWin?'#007aff':'#e74c5e')+';">'+G.gameOverReason+'</div>';html+='<div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,#fff8e1,#ffecb3);border-radius:12px;"><div style="font-size:13px;color:#f57c00;font-weight:600;margin-bottom:4px;">历史评价</div><div style="font-size:24px;font-weight:700;color:#e65100;">'+final.title+'</div><div style="font-size:14px;color:#ff8f00;margin-top:2px;">综合评分：'+final.score+'分（'+final.grade+'）</div></div>';html+='<div style="margin-top:12px;text-align:left;font-size:12px;color:#6b7280;line-height:1.8;">';html+='<div>治理城市：'+final.details.cities+'座</div>';html+='<div>平均GDP增长：'+(final.details.avgGrowth*100).toFixed(1)+'%</div>';html+='<div>平均满意度：'+Math.round(final.details.avgSat*100)+'%</div>';html+='<div>平均污染指数：'+final.details.avgPoll.toFixed(1)+'</div>';html+='<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid #e5e5ea;">经济建设 '+Math.round(final.details.gdpScore)+'分 | 民生改善 '+Math.round(final.details.satScore)+'分<br>环境保护 '+Math.round(final.details.envScore)+'分 | 社会稳定 '+Math.round(final.details.stableScore)+'分 | 履历丰富 '+Math.round(final.details.careerScore)+'分</div>';html+='</div></div>';showModal(isWin?'🎊 游戏胜利':'游戏结束',html,[{text:'重新开始',class:'primary',action:function(){closeModal();location.reload();}}]);}
+function showGameOver(){var isWin=G.gameOverReason.includes('胜利');var final=calculateFinalScore();var html='<div style="text-align:center;padding:12px 0;">';html+='<div style="font-size:48px;margin-bottom:8px;">'+(isWin?'🏆':'⚰')+'</div>';html+='<div style="font-size:20px;font-weight:600;color:'+(isWin?'#007aff':'#e74c5e')+';">'+G.gameOverReason+'</div>';html+='<div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,#fff8e1,#ffecb3);border-radius:12px;"><div style="font-size:13px;color:#f57c00;font-weight:600;margin-bottom:4px;">历史评价</div><div style="font-size:24px;font-weight:700;color:#e65100;">'+final.title+'</div><div style="font-size:14px;color:#ff8f00;margin-top:2px;">综合评分：'+final.score+'分（'+final.grade+'）</div></div>';html+='<div style="margin-top:12px;text-align:left;font-size:12px;color:#6b7280;line-height:1.8;">';html+='<div>治理城市：'+final.details.cities+'座</div>';html+='<div>平均GDP增长：'+((final.details&&final.details.avgGrowth?final.details.avgGrowth:0)*100).toFixed(1)+'%</div>';html+='<div>平均满意度：'+Math.round(final.details.avgSat*100)+'%</div>';html+='<div>平均污染指数：'+(final.details&&final.details.avgPoll?final.details.avgPoll:0).toFixed(1)+'</div>';html+='<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid #e5e5ea;">经济建设 '+Math.round(final.details.gdpScore)+'分 | 民生改善 '+Math.round(final.details.satScore)+'分<br>环境保护 '+Math.round(final.details.envScore)+'分 | 社会稳定 '+Math.round(final.details.stableScore)+'分 | 履历丰富 '+Math.round(final.details.careerScore)+'分</div>';html+='</div></div>';showModal(isWin?'🎊 游戏胜利':'游戏结束',html,[{text:'重新开始',class:'primary',action:function(){closeModal();location.reload();}}]);}
 
 // ---------- 渲染所有UI ----------
 function renderAll(){if(!G)return;document.getElementById('disp-rank').textContent=G.rankNames[G.rank]||'未知';if(document.getElementById('disp-age')){document.getElementById('disp-age').textContent=G.age+'岁 · 任期'+Math.floor(G.termMonths/12)+'年'+(G.termMonths%12)+'月';}document.getElementById('disp-name').textContent=G.mayorName||'—';document.getElementById('disp-city').textContent=G.cityName||'—';var timeStr=G.year+'年'+G.month+'月'+G.day+'日 '+String(G.hour).padStart(2,'0')+':00';document.getElementById('disp-time').textContent=timeStr;document.getElementById('disp-finance').textContent=fmtMoney(G.finance);document.getElementById('disp-gdp').textContent=fmtNum(G.gdp)+'万元';document.getElementById('disp-pop').textContent=fmtNum(G.population);document.getElementById('disp-satisfy').textContent=fmtPct(G.satisfaction);document.getElementById('disp-eval').textContent=fmtPct(G.superiorEval);document.getElementById('p-name').textContent=G.personal.name||'—';document.getElementById('p-rank').textContent=G.rankNames[G.rank]||'—';if(document.getElementById('p-age')){document.getElementById('p-age').textContent=G.age+'岁（'+G.birthYear+'年生）';}if(document.getElementById('p-term')){document.getElementById('p-term').textContent=Math.floor(G.termMonths/12)+'年'+(G.termMonths%12)+'月';}document.getElementById('p-city').textContent=G.cityName||'—';document.getElementById('p-edu').textContent=G.personal.education||'大专';document.getElementById('p-money').textContent=fmtYuan(G.personal.deposit);document.getElementById('p-salary').textContent=fmtYuan(G.personal.salary)+'/月';document.getElementById('p-ability').textContent='+'+ (G.personal.ability||0);document.getElementById('p-risk').textContent=(G.personal.corruptionRisk||0).toFixed(1)+'%';document.getElementById('p-health').textContent=(G.personal.health||100).toFixed(0)+'%';document.getElementById('p-stress').textContent=(G.personal.stress||0).toFixed(0)+'%';if(typeof updateHoldingPanel==='function')updateHoldingPanel();renderLogs();dirty=true;renderMap();}
@@ -1594,15 +1594,17 @@ function generateExistingCity(level){
       }
     }
   });
-  // 外围农田
+  // 外围农田（建成区外，确保耕地红线13%以上）
   for(var y4=0;y4<50;y4++){
     for(var x4=0;x4<50;x4++){
       if(grid[y4][x4]!==0)continue;
       var fdx2=x4-cx,fdy2=y4-cy;
       var dist2=Math.sqrt(fdx2*fdx2+fdy2*fdy2);
-      if(dist2>p.blocks*1.2&&dist2<p.blocks*1.8){
-        if(Math.random()<0.4)grid[y4][x4]=1;
-      }
+      if(dist2<p.blocks*1.1)continue; // 建成区内不铺农田
+      var farmProb=0.18;
+      if(dist2>p.blocks*1.8)farmProb=0.25;
+      if(dist2>p.blocks*2.5)farmProb=0.35;
+      if(Math.random()<farmProb)grid[y4][x4]=1;
     }
   }
   // 角落小湖
@@ -1898,7 +1900,7 @@ function createHousehold(members) {
 var _businessId = 0;
 function createBusiness(industry, size) {
   _businessId++;
-  var ind = INDUSTRIES[industry] || INDUSTRIES.manufacturing;
+  var ind = INDUSTRIES[industry] || INDUSTRIES.service || INDUSTRIES.wholesale;
   var sz = size || weightedPick([{v:'小微',w:50},{v:'中型',w:30},{v:'大型',w:15},{v:'巨型',w:5}]);
   var empBase = { '小微': randInt(5, 20), '中型': randInt(50, 200), '大型': randInt(300, 1000), '巨型': randInt(1000, 5000) };
   var revBase = { '小微': rand(50, 300), '中型': rand(500, 5000), '大型': rand(10000, 100000), '巨型': rand(200000, 1000000) };
@@ -2835,7 +2837,7 @@ function updateSocietyMonthly() {
     if (c.age > 60) deathProb += (c.age - 60) * 0.002;
     if (c.age > 80) deathProb += (c.age - 80) * 0.005;
     if (c.health < 30) deathProb += 0.02;
-    if (G.pollution > 50) deathProb += G.pollution / 2000;
+    if (G.pollution > 60) deathProb += (G.pollution - 60) / 5000;
     if (Math.random() < deathProb / 12) {
       c.isAlive = false;
       deaths++;
@@ -2843,10 +2845,10 @@ function updateSocietyMonthly() {
     }
     // 生育
     if (c.gender === '女' && c.age >= 20 && c.age <= 40 && c.maritalStatus === '已婚' && !c.unemployed) {
-      var birthProb = 0.015 * eraFactor.fertility;
-      birthProb *= (1 - G.livelihood.housing / 200);
-      birthProb *= (1 - c.stress / 200);
-      if (year < 2000) birthProb *= 0.5; // 计划生育
+      var birthProb = 0.025 * eraFactor.fertility;
+      birthProb *= (1 - G.livelihood.housing / 300);
+      birthProb *= (1 - c.stress / 300);
+      if (year < 2000) birthProb *= 0.8; // 计划生育
       if (year >= 2016) birthProb *= 1.3; // 全面二孩
       if (year >= 2021) birthProb *= 1.1; // 三孩
       if (Math.random() < birthProb / 12) {
