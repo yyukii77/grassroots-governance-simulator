@@ -1682,11 +1682,15 @@ var BUSINESS_TYPES = ['个体工商户','有限责任公司','股份有限公司
 
 function registerBusiness(name, type, industry) {
   if (!G.registrations) G.registrations = [];
+  var namePrefixes = ['宏达','鑫源','恒泰','昌盛','永兴','通达','汇丰','金泰','德信','博远','创新','卓越','蓝天','绿地','金山','银海','东方','南方','北方','中原','锦绣','鹏程','万达','恒大','碧桂园','联想','华为','中兴','海尔','格力'];
+  var nameSuffixes = ['科技','实业','贸易','建设','农业','服务','文化','咨询','物流','餐饮','纺织','机械','电子','化工','建材','食品','医药','能源','环保','教育'];
+  var companyTypes = ['有限责任公司','个体工商户','合伙企业','股份有限公司'];
+  var generatedName = namePrefixes[Math.floor(Math.random()*namePrefixes.length)] + nameSuffixes[Math.floor(Math.random()*nameSuffixes.length)] + companyTypes[Math.floor(Math.random()*companyTypes.length)];
   var reg = {
-    id: 'R' + Date.now(),
-    name: name || (G.cityName + '新注册企业' + (G.registrations.length+1)),
+    id: 'R' + Date.now() + Math.floor(Math.random()*1000),
+    name: name || generatedName,
     type: type || BUSINESS_TYPES[Math.floor(Math.random()*BUSINESS_TYPES.length)],
-    industry: industry || INDUSTRIES ? Object.keys(INDUSTRIES)[Math.floor(Math.random()*Object.keys(INDUSTRIES).length)] : '服务业',
+    industry: industry || (INDUSTRIES ? Object.keys(INDUSTRIES)[Math.floor(Math.random()*Object.keys(INDUSTRIES).length)] : '服务业'),
     status: '待审批',
     applyDate: G.year + '-' + G.month,
     capital: Math.floor(Math.random()*500) + 10,
@@ -1720,7 +1724,7 @@ function approveRegistration(regId, approve) {
 function autoRegisterBusinesses() {
   if (!G.registrations) G.registrations = [];
   // 每月自动产生注册申请
-  var count = Math.floor(Math.random() * 3) + (G.livelihood.employment > 70 ? 1 : 0);
+  var count = 1 + Math.floor(Math.random() * 3) + (G.livelihood.employment > 70 ? 1 : 0);
   for (var i = 0; i < count; i++) {
     registerBusiness();
   }
