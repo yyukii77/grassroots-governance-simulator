@@ -609,6 +609,32 @@ function doUsePower(action){
 // ---------- 晋升弹窗 ----------
 function showPromotionModal(newRank){showModal(' 晋升喜报','<div style="text-align:center;padding:12px 0;"><div style="font-size:32px;margin-bottom:8px;"></div><div style="font-size:22px;font-weight:600;color:#007aff;">晋升为 '+newRank+'</div><div style="margin-top:12px;color:rgba(255,255,255,0.6);">工资上涨，考核目标提高</div><div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,0.4);">个人资产、股票持仓全部保留</div></div>',[{text:'继续治理',class:'primary',action:closeModal}]);}
 
+function checkPromotion(){
+  if(G.gameOver)return;
+  var termLimit=G.rank===0?3:5;
+  if(G.termYears<termLimit)return;
+  var evalThreshold=[0.5,0.55,0.6,0.65,0.7][G.rank]||0.7;
+  var gdpThreshold=[30000,80000,200000,500000,1000000][G.rank]||1000000;
+  if(G.superiorEval>=evalThreshold&&G.gdp>=gdpThreshold&&G.rank<5){
+    G.rank++;
+    G.termYears=0;
+    G.salary=[8000,12000,18000,25000,35000,50000][G.rank]||50000;
+    var newRankName=G.rankNames[G.rank]||'高级干部';
+    addLog('晋升','恭喜！您已晋升为'+newRankName+'，月薪'+G.salary+'元','success');
+    showPromotionModal(newRankName);
+  }else if(G.termYears>=termLimit){
+    if(G.superiorEval<evalThreshold*0.7||G.gdp<gdpThreshold*0.5){
+      G.gameOver=true;
+      G.gameOverReason='任期考核不合格，被调离岗位！';
+      addLog('考核',''+G.gameOverReason,'danger');
+      showGameOver();
+    }else{
+      G.termYears=0;
+      addLog('考核','任期结束，考核合格，继续留任','info');
+    }
+  }
+}
+
 // ---------- 游戏结束 ----------
 function showGameOver(){var isWin=G.gameOverReason.includes('胜利');showModal(isWin?'🎊 游戏胜利':'游戏结束','<div style="text-align:center;padding:12px 0;"><div style="font-size:48px;margin-bottom:8px;">'+(isWin?'':'⚰')+'</div><div style="font-size:20px;font-weight:600;color:'+(isWin?'#007aff':'#e74c5e')+';">'+G.gameOverReason+'</div><div style="margin-top:12px;color:rgba(255,255,255,0.5);">最终职位: '+G.rankNames[G.rank]+'</div><div style="color:rgba(255,255,255,0.4);font-size:13px;">GDP: '+fmtNum(G.gdp)+' | 人口: '+fmtNum(G.population)+'</div></div>',[{text:'重新开始',class:'primary',action:function(){closeModal();location.reload();}}]);}
 
@@ -2249,10 +2275,25 @@ function aiStep() {
       addLog('AI', 'AI分析: ' + decision.analysis.substring(0, 100), 'info');
     }
     if (decision.actions && decision.actions.length > 0) {
+      var execCount = 0;
       decision.actions.forEach(function(a) {
-        executeAIAction(a);
+        try {
+          if (executeAIAction(a)) execCount++;
+        } catch(e) {
+          console.log('AI action error:', e);
+          addLog('AI', '动作执行异常: ' + e.message, 'warn');
+        }
       });
       AI_STATE.totalDecisions++;
+      // 刷新AI控制台UI
+      if (typeof updateAIConsoleUI === 'function') updateAIConsoleUI();
+    } else {
+      addLog('AI', 'AI未返回有效动作，推进一个月', 'info');
+      if (typeof advanceMonth === 'function') {
+        try { advanceMonth(); } catch(e) { console.log('advanceMonth error:', e); }
+      }
+      AI_STATE.totalDecisions++;
+      if (typeof updateAIConsoleUI === 'function') updateAIConsoleUI();
     }
     scheduleNextAIStep();
   });
@@ -2270,6 +2311,7 @@ function startAIGame() {
   AI_STATE.paused = false;
   AI_STATE.currentGameLog = [];
   addLog('AI', '=== AI自主治理模式启动 ===', 'success');
+  if (typeof updateAIConsoleUI === 'function') updateAIConsoleUI();
   aiStep();
 }
 
@@ -2285,6 +2327,22 @@ function stopAI() {
   AI_STATE.running = false;
   AI_STATE.paused = false;
   addLog('AI', 'AI自主治理已停止', 'warn');
+}
+
+function updateAIConsoleUI() {
+  try {
+    var statusEl = document.getElementById('ai-status');
+    var countEl = document.getElementById('ai-decision-count');
+    var gameEl = document.getElementById('ai-game-count');
+    if (statusEl) {
+      if (AI_STATE.thinking) statusEl.textContent = 'AI思考中...';
+      else if (AI_STATE.paused) statusEl.textContent = '已暂停';
+      else if (AI_STATE.running) statusEl.textContent = '运行中';
+      else statusEl.textContent = '已停止';
+    }
+    if (countEl) countEl.textContent = AI_STATE.totalDecisions;
+    if (gameEl) gameEl.textContent = AI_STATE.gameCount + ' / ' + AI_STATE.maxGames;
+  } catch(e) {}
 }
 
 // 完成一局游戏
