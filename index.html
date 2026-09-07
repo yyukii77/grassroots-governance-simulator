@@ -2472,10 +2472,7 @@ function initSociety() {
     G.businesses.push(createBusiness(ind));
   }
 
-  // 分配工作
-  assignJobs();
-
-  // 社会指标
+  // 社会指标（必须在assignJobs之前初始化，因为收入计算依赖averageWage）
   G.society = {
     birthRate: 0.018,
     deathRate: 0.007,
@@ -2498,6 +2495,9 @@ function initSociety() {
     pensionCoverage: 0.35
   };
 
+  // 分配工作
+  assignJobs();
+
   G.socialLogs = [];
 }
 
@@ -2513,7 +2513,7 @@ function assignJobs() {
       w.occupation = b.industryName + '员工';
       w.workplace = b.id;
       w.industry = b.industry;
-      w.income = Math.round(b.wageLevel * EDU_INCOME[w.education] * rand(0.8, 1.2));
+      w.income = Math.round((G.society.averageWage||45) * (b.wageLevel/4000) * EDU_INCOME[w.education] * rand(0.8, 1.2));
       w.unemployed = false;
       w.monthsUnemployed = 0;
       employed++;
@@ -2526,7 +2526,7 @@ function assignJobs() {
   });
   // 退休人员养老金
   G.citizens.filter(function(c) { return c.age >= 60 && c.isAlive; }).forEach(function(c) {
-    c.income = Math.round(1500 * EDU_INCOME[c.education] * 0.5);
+    c.income = Math.round((G.society.averageWage||45) * EDU_INCOME[c.education] * 0.8);
     c.retired = true;
   });
 }
@@ -2581,7 +2581,7 @@ function executeCitizenAction(citizen,action){
       var jobProb=(G.livelihood.employment/100)*(0.5+EDU_LEVELS.indexOf(citizen.education)/14);
       if(Math.random()<jobProb){
         citizen.unemployed=false;
-        citizen.income=Math.round(avgWage*(0.6+Math.random()*0.4));
+        citizen.income=Math.round((G.society.averageWage||45)*(0.6+Math.random()*0.4));
         citizen.monthsUnemployed=0;
         citizen.happiness=clamp(citizen.happiness+10,0,100);
         log+='→找到工作，月收入'+citizen.income;
@@ -3454,7 +3454,7 @@ function updateSocietyMonthly() {
       c.occupation = b.industryName + '员工';
       c.workplace = b.id;
       c.industry = b.industry;
-      c.income = Math.round(b.wageLevel * EDU_INCOME[c.education] * rand(0.8, 1.2));
+      c.income = Math.round((G.society.averageWage||45) * (b.wageLevel/4000) * EDU_INCOME[c.education] * rand(0.8, 1.2));
       c.unemployed = false;
       c.monthsUnemployed = 0;
       c.stress = clamp(c.stress - 10, 0, 100);
