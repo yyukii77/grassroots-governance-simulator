@@ -1753,7 +1753,7 @@ function analyzeSocietyWithAI(callback) {
         { role: 'system', content: '你是中国基层治理专家，熟悉公共政策、社会学、经济学。分析要客观、专业、有数据支撑，建议要具体可操作。' },
         { role: 'user', content: prompt }
       ],
-      temperature: 0.7,
+      temperature: 0.8,
       max_tokens: 3000
     })
   }).then(function(r) { return r.json(); })
@@ -2313,8 +2313,12 @@ var AI_STATE = {
   totalDecisions: 0,
   apiKey: null,
   thinking: false,
-  speed: 'normal', // fast/normal/slow
-  paused: false
+  speed: 'normal',
+  paused: false,
+  memory: [],
+  lastReflection: '',
+  decisionCount: 0,
+  lastThinking: null
 };
 
 // 构建AI可读的游戏状态摘要
@@ -2376,34 +2380,68 @@ function buildAIStateSummary() {
 
 // 构建AI决策提示词
 function buildAIPrompt() {
-  var recentLogs = G.logs ? G.logs.slice(0, 8).map(function(l){return '['+l.time+']'+l.msg;}).join('\n') : '';
-  return `你是一位中国基层干部，正在玩《设身处地·基层治理模拟器》。你的目标是：发展经济、改善民生、获得上级认可，最终晋升到更高职务。
+  var recentLogs = G.logs ? G.logs.slice(0, 10).map(function(l){return '['+l.time+']'+l.msg;}).join('\n') : '';
+  var memory = AI_STATE.memory ? AI_STATE.memory.slice(-5).map(function(m){return '- '+m;}).join('\n') : '暂无';
+  var reflection = AI_STATE.lastReflection || '暂无反思';
+  return `# 角色设定
+你是一位极具政治智慧的基层治理者，正在主政一方。你要像真正的县委书记那样思考：观大势、谋全局、抓重点、防风险。
 
-## 当前游戏状态
+# 你的治理哲学
+- 发展是第一要务，但不能以牺牲稳定和环境为代价
+- 民生是根本，群众满意是最大的政绩
+- 上级评价决定晋升，要懂汇报、懂造势、懂把握时机
+- 风险意识时刻在线，廉政、安全、舆情都是高压线
+- 个人发展与地方发展要相互促进
+
+# 当前游戏状态
 ${buildAIStateSummary()}
 
-## 近期事件
+# 近期事件
 ${recentLogs}
 
-## 你可以执行的动作（每次选择1-3个，必须包含advance_month）
-请以JSON格式返回决策，格式如下：
+# 你的经验记忆（之前总结的教训）
+${memory}
+
+# 上次反思
+${reflection}
+
+# 决策思考框架（请严格按此思考）
+## 第一步：局势诊断
+分析当前最突出的3个问题是什么？最难得的机遇是什么？最大的风险在哪里？
+
+## 第二步：优先级排序
+按"紧急且重要"原则排序，确定本轮重点解决什么。
+
+## 第三步：策略选择
+是"稳中求进"还是"大胆突破"？是"先易后难"还是"攻坚克难"？
+
+## 第四步：具体行动
+制定1-3个具体动作，每个动作都要有明确的目的和预期效果。
+
+# 你可以执行的动作
+请以JSON格式返回，必须包含thinking（思考过程）和actions（具体动作）：
 {
+  "thinking": {
+    "diagnosis": "局势诊断：当前最突出的问题和机遇",
+    "priority": "优先级排序：本轮重点",
+    "strategy": "策略选择：稳中求进/大胆突破等",
+    "risk": "风险预判：可能的风险和应对"
+  },
   "actions": [
-    {"type": "advance_month", "reason": "推进时间观察发展"},
-    {"type": "build", "building_type": 3, "reason": "建设住宅"},
-    {"type": "policy", "policy_id": "livelihood", "reason": "改善民生提升满意度"},
-    {"type": "project", "project_type": 0, "reason": "修建道路改善基建"},
-    {"type": "take_exam", "reason": "参加学历考试提升自己"},
-    {"type": "apply_promotion", "reason": "条件满足时申请晋升"},
-    {"type": "marry", "reason": "25-35岁产生结婚想法时结婚"},
-    {"type": "have_child", "reason": "结婚后产生生育想法时要孩子"},
-    {"type": "buy_house", "reason": "结婚/有孩子/职级提升产生购房想法时买房"},
-    {"type": "buy_car", "reason": "职级提升/汽车普及时代产生购车想法时买车"},
-    {"type": "buy_stock", "reason": "1991年后用闲钱投资股票"},
-    {"type": "handle_government", "reason": "处理政务（人事/工程/工商/申报）"},
-    {"type": "handle_event", "reason": "及时处理突发事件"}
-  ],
-  "analysis": "你对当前局势的简短分析"
+    {"type": "advance_month", "reason": "推进时间"},
+    {"type": "build", "building_type": 3, "reason": "建设住宅解决住房"},
+    {"type": "policy", "policy_id": "livelihood", "reason": "改善民生"},
+    {"type": "project", "project_type": 0, "reason": "基建投资"},
+    {"type": "take_exam", "reason": "学历提升"},
+    {"type": "apply_promotion", "reason": "申请晋升"},
+    {"type": "marry", "reason": "结婚"},
+    {"type": "have_child", "reason": "生育"},
+    {"type": "buy_house", "reason": "购房"},
+    {"type": "buy_car", "reason": "购车"},
+    {"type": "buy_stock", "reason": "投资股票"},
+    {"type": "handle_government", "reason": "处理政务"},
+    {"type": "handle_event", "reason": "处理突发事件"}
+  ]
 }
 
 ## 建筑类型说明
@@ -2432,6 +2470,45 @@ tax_break税收优惠 talent_intro人才引进 infra_invest基建投资 env_prot
 - 退休：达到退休年龄（60/65/70岁）游戏结束，要在退休前达成目标
 
 请做出你的决策。只返回JSON，不要其他文字。`;
+}
+
+// AI反思函数
+function doAIReflection() {
+  if (!AI_STATE.apiKey) return;
+  var key = AI_STATE.apiKey;
+  var recentDecisions = AI_STATE.currentGameLog.slice(-10).map(function(d){return d.time + ': ' + d.action + ' - ' + d.detail;}).join('\n');
+  var state = buildAIStateSummary();
+
+  fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: '你是一位资深的治理顾问，善于从实践中总结经验教训。' },
+        { role: 'user', content: `请基于以下信息进行反思总结，提炼3条最重要的经验教训：
+
+## 当前状态
+${state}
+
+## 近10轮决策
+${recentDecisions}
+
+请用简短的语言总结：哪些决策有效？哪些需要改进？接下来应该注意什么？
+格式：每条教训一句话，不超过50字。` }
+      ],
+      max_tokens: 500,
+      temperature: 0.5
+    })
+  }).then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.choices && data.choices[0]) {
+      AI_STATE.lastReflection = data.choices[0].message.content;
+      addLog('AI', '[AI反思] ' + AI_STATE.lastReflection.substring(0, 100), 'info');
+    }
+  }).catch(function(e) {
+    console.log('AI反思失败', e);
+  });
 }
 
 // 执行AI决策
@@ -2700,11 +2777,11 @@ function getAIDecision(callback) {
     body: JSON.stringify({
       model: 'deepseek-chat',
       messages: [
-        { role: 'system', content: '你是一位经验丰富的中国基层干部，擅长经济发展、民生改善和政治智慧。你的决策务实、平衡、有远见。' },
+        { role: 'system', content: '你是一位极具政治智慧和战略眼光的中国基层干部，深耕基层治理数十年。你不仅懂经济、懂民生、懂政治，更懂得权衡利弊、把握时机、运筹帷幄。你的决策风格：\n1. 深度思考：不急于行动，先分析局势、诊断问题、预判风险\n2. 战略思维：有短期应急、中期发展、长期布局的层次感\n3. 务实平衡：在发展与稳定、经济与民生、政绩与风险之间找平衡点\n4. 政治敏锐：懂得上级意图、群众情绪、舆论导向\n5. 持续学习：从过往决策中总结经验，不断优化策略\n你要像一位真正的治理者那样思考，而不是机械地执行动作。' },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 2000,
-      temperature: 0.7
+      max_tokens: 3000,
+      temperature: 0.8
     })
   }).then(function(res) { return res.json(); })
   .then(function(data) {
@@ -2716,6 +2793,17 @@ function getAIDecision(callback) {
       if (jsonMatch) {
         try {
           var decision = JSON.parse(jsonMatch[0]);
+          // 保存思考过程到记忆
+          if (decision.thinking) {
+            AI_STATE.lastThinking = decision.thinking;
+            var memEntry = G.year + '年' + G.month + '月: ' + (decision.thinking.diagnosis || '').substring(0, 50) + ' | ' + (decision.thinking.strategy || '').substring(0, 30);
+            AI_STATE.memory.push(memEntry);
+            if (AI_STATE.memory.length > 20) AI_STATE.memory.shift();
+          }
+          AI_STATE.decisionCount++;
+          if (AI_STATE.decisionCount % 10 === 0 && typeof doAIReflection === 'function') {
+            doAIReflection();
+          }
           callback({ decision: decision, raw: content });
         } catch(e) {
           callback({ error: 'JSON解析失败: ' + e.message, raw: content });
