@@ -3464,17 +3464,27 @@ function updateSocietyMonthly() {
     }
   });
 
-  // 5. 工资与收入更新
+  // 5. 工资与收入更新（基于年代平均工资重新计算，避免旧存档高收入固化）
   var incomes = [];
-  G.citizens.filter(function(c) { return c.isAlive && c.income > 0; }).forEach(function(c) {
-    if (!c.unemployed && !c.retired) {
-      c.income = Math.round(c.income * (1 + rand(-0.01, 0.02)));
+  var _avgW = G.society.averageWage || 45;
+  G.citizens.filter(function(c) { return c.isAlive; }).forEach(function(c) {
+    if (!c.unemployed && !c.retired && c.workplace) {
+      // 有工作：基于平均工资+行业差异+教育水平重新计算
+      var _b = G.businesses ? G.businesses.find(function(x){return x.id===c.workplace;}) : null;
+      var _wageMult = _b ? (_b.wageLevel/4000) : 1.0;
+      c.income = Math.round(_avgW * _wageMult * (EDU_INCOME[c.education]||1) * rand(0.85, 1.15));
+    } else if (c.retired) {
+      // 退休：养老金为平均工资的40-60%
+      c.income = Math.round(_avgW * rand(0.4, 0.6));
+    } else if (!c.unemployed) {
+      // 自雇/其他
+      c.income = Math.round(_avgW * (EDU_INCOME[c.education]||1) * 0.7 * rand(0.8, 1.2));
     }
-    incomes.push(c.income);
+    if (c.income > 0) incomes.push(c.income);
   });
   incomes.sort(function(a, b) { return a - b; });
-  G.society.averageWage = Math.round(incomes.reduce(function(s, v) { return s + v; }, 0) / Math.max(1, incomes.length));
-  G.society.medianIncome = incomes[Math.floor(incomes.length / 2)] || 3000;
+  // 不覆盖averageWage（由年代公式计算），只更新中位数
+  G.society.medianIncome = incomes.length > 0 ? incomes[Math.floor(incomes.length / 2)] : Math.round(_avgW * 0.85);
 
   // 6. 健康与医疗
   var totalMedical = 0;
