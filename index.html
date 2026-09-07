@@ -834,11 +834,11 @@ function tryBuyCar() {
 // ---------- 申请晋升 ----------
 function getPromotionRequirements(rank) {
   var reqs = [
-    {term: 3, gdp: 25000, pop: 450000, eval: 50, edu: '大专'},   // 正科→副处
-    {term: 5, gdp: 60000, pop: 600000, eval: 55, edu: '大专'},   // 副处→正处
-    {term: 5, gdp: 150000, pop: 1000000, eval: 60, edu: '本科'}, // 正处→副厅
-    {term: 5, gdp: 400000, pop: 2000000, eval: 65, edu: '本科'}, // 副厅→正厅
-    {term: 5, gdp: 1000000, pop: 5000000, eval: 70, edu: '硕士'}, // 正厅→副部
+    {term: 3, gdp: 25000, pop: 450000, eval: 50, edu: '大专', buildings: 80},
+    {term: 5, gdp: 60000, pop: 600000, eval: 55, edu: '大专', buildings: 150},
+    {term: 5, gdp: 150000, pop: 1000000, eval: 60, edu: '本科', buildings: 300},
+    {term: 5, gdp: 400000, pop: 2000000, eval: 65, edu: '本科', buildings: 500},
+    {term: 5, gdp: 1000000, pop: 5000000, eval: 70, edu: '硕士', buildings: 800},
   ];
   return reqs[rank] || reqs[reqs.length-1];
 }
@@ -855,12 +855,14 @@ function openPromotionModal() {
   var currentEdu = eduLevel[G.personal.education] || 0;
   var requiredEdu = eduLevel[req.edu] || 0;
 
+  var buildingCount = G.buildingData ? Object.keys(G.buildingData).length : 0;
   var checks = [
     {label:'任期年限', current: termYears+'年', required: req.term+'年', pass: termYears >= req.term},
     {label:'GDP总量', current: fmtMoney(G.gdp), required: req.gdp+'万元', pass: G.gdp >= req.gdp},
     {label:'人口规模', current: G.population.toLocaleString()+'人', required: req.pop.toLocaleString()+'人', pass: G.population >= req.pop},
     {label:'上级评价', current: (G.superiorEval*100).toFixed(0)+'%', required: req.eval+'%', pass: G.superiorEval*100 >= req.eval},
     {label:'学历要求', current: G.personal.education, required: req.edu, pass: currentEdu >= requiredEdu},
+    {label:'建成区规模', current: buildingCount+'格', required: req.buildings+'格', pass: buildingCount >= req.buildings},
   ];
 
   var allPass = checks.every(function(c){return c.pass;});
@@ -908,7 +910,8 @@ function submitPromotionApplication() {
   var currentEdu = eduLevel[G.personal.education] || 0;
   var requiredEdu = eduLevel[req.edu] || 0;
 
-  var allPass = termYears >= req.term && G.gdp >= req.gdp && G.population >= req.pop && G.superiorEval*100 >= req.eval && currentEdu >= requiredEdu;
+  var buildingCount = G.buildingData ? Object.keys(G.buildingData).length : 0;
+  var allPass = termYears >= req.term && G.gdp >= req.gdp && G.population >= req.pop && G.superiorEval*100 >= req.eval && currentEdu >= requiredEdu && buildingCount >= req.buildings;
 
   if (!allPass) {
     showModal('申请失败', '<div style="text-align:center;padding:20px;"><div style="font-size:36px;margin-bottom:10px;">❌</div><div style="font-size:16px;">晋升条件未全部满足</div><div style="font-size:13px;color:#8e8e93;margin-top:8px;">请继续努力，达成所有条件后再申请</div></div>', [{text:'知道了',class:'primary',action:closeModal}]);
@@ -922,14 +925,65 @@ function submitPromotionApplication() {
   closeModal();
 
   if (Math.random() < successRate) {
-    // 晋升成功
+    // 晋升成功 + 调任新城市
+    var oldRank = G.rank;
     G.rank++;
+    var newRankName = G.rankNames[G.rank];
+    // 保存个人资产（跨城市保留）
+    var personalAssets = {
+      deposit: G.personal.deposit,
+      education: G.personal.education,
+      eduScore: G.personal.eduScore,
+      ability: G.personal.ability,
+      stocks: G.personal.stocks ? JSON.parse(JSON.stringify(G.personal.stocks)) : [],
+      corruptionRisk: G.personal.corruptionRisk || 0,
+      health: G.personal.health || 100,
+      stress: G.personal.stress || 0,
+      assets: G.personal.assets ? JSON.parse(JSON.stringify(G.personal.assets)) : [],
+      salary: calculateSalary(G.rank, G.year) / 10000
+    };
+    var carriedEval = G.superiorEval * 0.8;
+    // 确定新城市级别
+    var newCityLevel = Math.min(3, Math.floor((G.rank + 1) / 2));
+    G.startLevel = newCityLevel;
+    // 重新生成地图
+    G.grid = generateExistingCity(newCityLevel);
+    G.buildingData = {};
+    // 重新计算城市数据
+    autoCalculateCityStats(newCityLevel);
+    // 恢复个人资产
+    G.personal.deposit = personalAssets.deposit;
+    G.personal.education = personalAssets.education;
+    G.personal.eduScore = personalAssets.eduScore;
+    G.personal.ability = personalAssets.ability;
+    G.personal.stocks = personalAssets.stocks;
+    G.personal.corruptionRisk = personalAssets.corruptionRisk;
+    G.personal.health = personalAssets.health;
+    G.personal.stress = personalAssets.stress;
+    G.personal.assets = personalAssets.assets;
+    G.personal.salary = personalAssets.salary;
+    // 恢复上级评价（保留80%）
+    G.superiorEval = carriedEval;
+    // 安家费
+    var settlingAllowance = 5 + Math.floor(Math.random() * 10);
+    G.personal.deposit += settlingAllowance;
+    // 重置任期
     G.termMonths = 0;
     G.promotionCooldown = 0;
-    G.personal.salary = calculateSalary(G.rank, G.year) / 10000;
-    var newRankName = G.rankNames[G.rank];
-    addLog('晋升', '🎉 晋升申请通过！您已晋升为'+newRankName+'，月薪'+calculateSalary(G.rank, G.year)+'元', 'success');
-    showPromotionModal(newRankName);
+    G.age = Math.min(80, G.age + 1);
+    // 重新初始化社会系统
+    if (typeof initSociety === 'function') initSociety();
+    if (typeof initCadres === 'function') initCadres();
+    G.promoted = true;
+    G.lastPromotionYear = G.year;
+    var cityLevelNames = ['乡镇', '县城', '地级市', '副省级市'];
+    var newCityType = cityLevelNames[newCityLevel] || '县城';
+    addLog('晋升', '🎉 晋升调任！您已晋升为'+newRankName+'，调任'+newCityType+'，安家费'+settlingAllowance+'万元', 'success');
+    addLog('晋升', '新城市人口'+G.population.toLocaleString()+'人，GDP'+fmtNum(G.gdp)+'万元', 'info');
+    showPromotionModal(newRankName, newCityType, G.population, G.gdp, settlingAllowance);
+    if (typeof centerMap === 'function') centerMap();
+    if (typeof renderAll === 'function') renderAll();
+    if (typeof renderMap === 'function') renderMap();
   } else {
     // 晋升失败
     G.promotionCooldown = 6;
@@ -948,7 +1002,22 @@ function decreasePromotionCooldown() {
 }
 
 // ---------- 晋升弹窗 ----------
-function showPromotionModal(newRank){showModal(' 晋升喜报','<div style="text-align:center;padding:12px 0;"><div style="font-size:32px;margin-bottom:8px;"></div><div style="font-size:22px;font-weight:600;color:#007aff;">晋升为 '+newRank+'</div><div style="margin-top:12px;color:rgba(255,255,255,0.6);">工资上涨，考核目标提高</div><div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,0.4);">个人资产、股票持仓全部保留</div></div>',[{text:'继续治理',class:'primary',action:closeModal}]);}
+function showPromotionModal(newRank, newCity, population, gdp, allowance){
+  var html='<div style="text-align:center;padding:12px 0;">';
+  html+='<div style="font-size:48px;margin-bottom:8px;">🏛️</div>';
+  html+='<div style="font-size:22px;font-weight:700;color:#007aff;">调任 '+newCity+'</div>';
+  html+='<div style="font-size:18px;font-weight:600;margin-top:4px;">担任 '+newRank+'</div>';
+  html+='<div style="margin-top:16px;padding:12px;background:#f0f7ff;border-radius:8px;text-align:left;font-size:13px;color:#1e40af;line-height:1.8;">';
+  html+='📍 城市规模升级，挑战更大<br>';
+  html+='👥 新城市人口：'+(population?population.toLocaleString():'-')+'人<br>';
+  html+='📈 新城市GDP：'+(gdp?fmtNum(gdp):'-')+'万元<br>';
+  html+='💰 安家费：'+(allowance||0)+'万元<br>';
+  html+='📊 上级评价保留80%，需重新证明自己';
+  html+='</div>';
+  html+='<div style="margin-top:12px;font-size:12px;color:#8e8e93;">个人资产、学历、股票全部保留</div>';
+  html+='</div>';
+  showModal('🎊 晋升调任', html, [{text:'赴任履新',class:'primary',action:closeModal}]);
+}
 
 // 根据年份计算工资增长系数（参考中国实际工资增长）
 function getYearSalaryMultiplier(year) {
