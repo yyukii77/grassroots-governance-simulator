@@ -80,7 +80,7 @@ nation:{cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStab
 career:{cities:[],achievements:[],totalTermYears:0,reputation:0},
 housing:{averagePrice:800,priceIncomeRatio:4,rentPriceRatio:4.5,supply:1000,demand:1200,speculationIndex:0.2,rentalYield:0.04,vacancyRate:0.08,landSupply:50,landPrice:100,landRevenue:0,auctionHistory:[]},
 debt:{balance:0,annualRepayment:0,creditRating:'AA',defaultRisk:0.02,interestRate:0.04,repaymentCapacity:0.8},
-industryPrices:{},industryClusters:{},ioMultiplier:1.0,
+industryPrices:{},industryClusters:{},ioMultiplier:1.0,economic:{marketDemand:{},totalConsumption:0,consumerConfidence:0.6,multiplier:1.0,priceIndex:{food:1.0,housing:1.0,education:1.0,medical:1.0,entertainment:1.0,other:1.0}},
 factions:{'本土派':{power:0.35,departments:['住建局','交通局','水利局'],leader:null,relations:{}},'外来派':{power:0.25,departments:['发改委','商务局','科技局'],leader:null,relations:{}},'学院派':{power:0.20,departments:['教育局','卫生局','人社局'],leader:null,relations:{}},'军旅派':{power:0.15,departments:['公安局','应急局','武装部'],leader:null,relations:{}},'秘书帮':{power:0.05,departments:['党委办','政府办','组织部'],leader:null,relations:{}}},
 factionTension:0.2,factionBalance:0.6,
 centralPolicy:{year:1980,focus:'gdp',assessmentWeights:{gdp:0.35,environment:0.15,livelihood:0.20,stability:0.15,innovation:0.15},pressure:0.3,transferPayment:5000,specialFunds:[]},
@@ -455,7 +455,7 @@ function simulateAllOldCities(){
   updateNationStats();
 }
 
-function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*50/12;gdpAdd+=farmGdp;G.gdp=G.gdp*0.85+(gdpAdd*12)*0.15;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution-=G.pollution*0.15;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
+function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}try{updateCitizenConsumption();}catch(e){console.log('消费更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*50/12;gdpAdd+=farmGdp;G.gdp=G.gdp*0.85+(gdpAdd*12)*0.15;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution-=G.pollution*0.15;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
   // 发放工资
   var monthlySalary = G.personal.salary || 0.006;
   G.personal.deposit += monthlySalary;
@@ -2324,6 +2324,57 @@ function updateIndustryPrices(){
   G.ioMultiplier=1+totalIO*0.02;
 }
 
+// ========== 经济闭环：市民消费模块 ==========
+function updateCitizenConsumption(){
+  if(!G.citizens||!G.economic)return;
+  // 消费倾向：受收入阶层、消费信心影响
+  var totalConsume=0;
+  var demand={};
+  var alive=G.citizens.filter(function(c){return c.isAlive&&c.income>0;});
+  alive.forEach(function(c){
+    // 可支配收入（简化：不扣税，后续可加）
+    var disposable=c.income;
+    // 边际消费倾向：低收入0.8，中收入0.6，高收入0.4
+    var avgW=G.society.averageWage||45;
+    var mpc=0.7;
+    if(c.income>avgW*2)mpc=0.4;
+    else if(c.income>avgW*1.2)mpc=0.6;
+    else if(c.income<avgW*0.7)mpc=0.85;
+    // 消费信心调整
+    mpc*=(0.7+0.6*G.economic.consumerConfidence);
+    mpc=Math.min(0.95,mpc);
+    var consume=disposable*mpc;
+    var save=disposable-consume;
+    c.savings=(c.savings||0)+save;
+    c.monthlyConsumption=consume;
+    totalConsume+=consume;
+    // 消费结构（恩格尔系数）
+    var foodRatio=Math.max(0.15,0.45-c.income/5000);
+    var housingRatio=Math.min(0.35,0.15+c.income/20000);
+    var eduRatio=(c.children&&c.children.length>0)?0.1:0.03;
+    var medRatio=c.age>55?0.1:0.04;
+    var entRatio=Math.min(0.15,0.03+c.income/15000);
+    var otherRatio=Math.max(0.05,1-foodRatio-housingRatio-eduRatio-medRatio-entRatio);
+    // 映射到行业需求
+    demand['food']=(demand['food']||0)+consume*foodRatio;
+    demand['realestate']=(demand['realestate']||0)+consume*housingRatio;
+    demand['education']=(demand['education']||0)+consume*eduRatio;
+    demand['medical']=(demand['medical']||0)+consume*medRatio;
+    demand['hotel']=(demand['hotel']||0)+consume*entRatio;
+    demand['culture']=(demand['culture']||0)+consume*entRatio*0.5;
+    demand['wholesale']=(demand['wholesale']||0)+consume*otherRatio;
+    demand['transport']=(demand['transport']||0)+consume*otherRatio*0.3;
+  });
+  G.economic.marketDemand=demand;
+  G.economic.totalConsumption=totalConsume;
+  // 消费信心：受满意度和就业影响
+  var empRate=G.livelihood.employment/100||0.9;
+  G.economic.consumerConfidence=clamp(G.economic.consumerConfidence*0.9+(G.satisfaction*0.5+empRate*0.5)*0.1,0.2,1.0);
+  // 乘数效应 = 1/(1-mpc*0.7)
+  var avgMpc=totalConsume>0?totalConsume/(alive.reduce(function(s,c){return s+c.income;},0)||1):0.6;
+  G.economic.multiplier=Math.min(2.5,1/(1-avgMpc*0.7));
+}
+
 function updateBusinessWithIO(){
   if(!G.businesses)return;
   G.industryClusters={};
@@ -2345,13 +2396,31 @@ function updateBusinessWithIO(){
     var clusterBonus=1+Math.min(0.15,Math.log(clusterCount)*0.05);
     var wageCost=b.employees*b.wageLevel;
     b.profit=b.revenue*downstreamDemand*clusterBonus-wageCost-upstreamCost;
+    // 需求驱动：市场需求影响营收增长
+    var marketDem=G.economic&&G.economic.marketDemand?G.economic.marketDemand[b.industry]||0:0;
+    var demandFactor=1.0;
+    if(marketDem>0&&b.revenue>0){
+      var demandRatio=marketDem/(b.revenue*b.employees/100||1);
+      demandFactor=1+Math.min(0.05,Math.max(-0.03,(demandRatio-1)*0.02));
+    }
     var tax=Math.max(0,b.profit*b.taxRate+b.revenue*0.04);
     G.finance+=tax/12;
     if(b.profit>0){
-      b.revenue*=(1+b.growthRate/12*(1+G.ioMultiplier*0.1));
+      b.revenue*=(1+b.growthRate/12*(1+G.ioMultiplier*0.1))*demandFactor;
       b.financialHealth=clamp(b.financialHealth+1,0,100);
+      // 工资反馈：利润好时涨薪
+      if(b.profit>b.revenue*0.1&&Math.random()<0.15){
+        b.wageLevel*=1.02;
+      }
     }else{
       b.financialHealth=clamp(b.financialHealth-2,0,100);
+      // 利润差时降薪或裁员
+      if(b.profit<-b.revenue*0.05&&Math.random()<0.1){
+        b.wageLevel*=0.98;
+        if(b.employees>10&&Math.random()<0.2){
+          b.employees=Math.max(5,Math.floor(b.employees*0.95));
+        }
+      }
     }
   });
 }
@@ -2845,7 +2914,7 @@ function updateSocietyMonthly() {
     }
     // 生育
     if (c.gender === '女' && c.age >= 20 && c.age <= 40 && c.maritalStatus === '已婚' && !c.unemployed) {
-      var birthProb = 0.025 * eraFactor.fertility;
+      var birthProb = 0.25 * eraFactor.fertility;
       birthProb *= (1 - G.livelihood.housing / 300);
       birthProb *= (1 - c.stress / 300);
       if (year < 2000) birthProb *= 0.8; // 计划生育
