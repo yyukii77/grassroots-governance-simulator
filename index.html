@@ -58,7 +58,7 @@
 <div class="stat-row"><span class="lbl">健康</span><span class="val" id="p-health">100%</span></div>
 <div class="stat-row"><span class="lbl">压力</span><span class="val" id="p-stress">0%</span></div>
 <div id="stockHoldingPanel" style="margin-top:12px;padding:12px;background:#f9f9fb;border-radius:12px;"><div style="font-size:13px;font-weight:600;color:#1c1c1e;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>股票持仓</span><span id="holdingCount" style="font-size:11px;color:#8e8e93;font-weight:normal;">0只</span></div><div id="holdingEmpty" style="text-align:center;padding:8px 0;font-size:12px;color:#8e8e93;">暂无持仓</div><div id="holdingDetail" style="display:none;"><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8e8e93;">总市值</span><span id="holdingTotalValue" style="font-size:13px;font-weight:600;color:#1c1c1e;">0万元</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8e8e93;">总成本</span><span id="holdingTotalCost" style="font-size:13px;font-weight:600;color:#1c1c1e;">0万元</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid #e5e5ea;margin-top:4px;padding-top:8px;"><span style="font-size:12px;color:#8e8e93;">浮动盈亏</span><span id="holdingTotalProfit" style="font-size:14px;font-weight:700;">+0万元</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="font-size:12px;color:#8e8e93;">收益率</span><span id="holdingTotalRate" style="font-size:13px;font-weight:600;">+0%</span></div></div></div>
-<div class="action-group"><button class="btn-sm primary" onclick="openExamModal()">学历考试</button><button class="btn-sm" onclick="openPromotionModal()">申请晋升</button><button class="btn-sm" onclick="openConsumeModal()">消费购物</button><button class="btn-sm" onclick="openPersonalModal('property')">房产管理</button><button class="btn-sm" onclick="openPersonalModal('vehicle')">车辆管理</button><button class="btn-sm" onclick="openPersonalModal('relation')">人际关系</button><button class="btn-sm" onclick="showSuperiorPanel()">上级互动</button><button class="btn-sm" onclick="showOpinionPanel()">舆论媒体</button><button class="btn-sm" onclick="openPersonalModal('family')">家庭情况</button><button class="btn-sm" onclick="openBankModal()">银行系统</button></div>
+<div class="action-group"><button class="btn-sm primary" onclick="openExamModal()">学历考试</button><button class="btn-sm" onclick="openPromotionModal()">申请晋升</button><button class="btn-sm" onclick="openConsumeModal()">消费购物</button><button class="btn-sm" onclick="openPersonalModal('property')">房产管理</button><button class="btn-sm" onclick="openPersonalModal('vehicle')">车辆管理</button><button class="btn-sm" onclick="openPersonalModal('relation')">人际关系</button><button class="btn-sm" onclick="showSuperiorPanel()">上级互动</button><button class="btn-sm" onclick="showOpinionPanel()">舆论媒体</button><button class="btn-sm" onclick="showJusticePanel()">法治司法</button><button class="btn-sm" onclick="openPersonalModal('family')">家庭情况</button><button class="btn-sm" onclick="openBankModal()">银行系统</button></div>
 <div style="margin-top:6px;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;border-top:1px solid rgba(255,255,255,0.04);padding-top:6px;">晋升后个人资产全部保留</div>
 </div>
 </div>
@@ -80,7 +80,7 @@ nation:{cities:[],totalGDP:0,totalPopulation:0,avgSatisfaction:0.5,politicalStab
 career:{cities:[],achievements:[],totalTermYears:0,reputation:0},
 housing:{averagePrice:800,priceIncomeRatio:4,rentPriceRatio:4.5,supply:1000,demand:1200,speculationIndex:0.2,rentalYield:0.04,vacancyRate:0.08,landSupply:50,landPrice:100,landRevenue:0,auctionHistory:[]},
 debt:{balance:0,annualRepayment:0,creditRating:'AA',defaultRisk:0.02,interestRate:0.04,repaymentCapacity:0.8},
-industryPrices:{},industryClusters:{},ioMultiplier:1.0,publicOpinion:{overall:0.5,topics:{economy:0.5,environment:0.5,education:0.5,medical:0.5,housing:0.5,corruption:0.5,publicSafety:0.5},media:[{name:'市日报',type:'official',bias:0.2,audience:0.3},{name:'晚报',type:'market',bias:-0.1,audience:0.4},{name:'网络自媒体',type:'social',bias:-0.3,audience:0.5}],events:[]},economic:{marketDemand:{},totalConsumption:0,consumerConfidence:0.6,multiplier:1.0,priceIndex:{food:1.0,housing:1.0,education:1.0,medical:1.0,entertainment:1.0,other:1.0}},
+industryPrices:{},industryClusters:{},ioMultiplier:1.0,justice:{crimeRate:0.02,clearanceRate:0.6,judicialTrust:0.5,cases:[],policeBudget:0,totalCases:0,clearedCases:0},publicOpinion:{overall:0.5,topics:{economy:0.5,environment:0.5,education:0.5,medical:0.5,housing:0.5,corruption:0.5,publicSafety:0.5},media:[{name:'市日报',type:'official',bias:0.2,audience:0.3},{name:'晚报',type:'market',bias:-0.1,audience:0.4},{name:'网络自媒体',type:'social',bias:-0.3,audience:0.5}],events:[]},economic:{marketDemand:{},totalConsumption:0,consumerConfidence:0.6,multiplier:1.0,priceIndex:{food:1.0,housing:1.0,education:1.0,medical:1.0,entertainment:1.0,other:1.0}},
 factions:{'本土派':{power:0.35,departments:['住建局','交通局','水利局'],leader:null,relations:{}},'外来派':{power:0.25,departments:['发改委','商务局','科技局'],leader:null,relations:{}},'学院派':{power:0.20,departments:['教育局','卫生局','人社局'],leader:null,relations:{}},'军旅派':{power:0.15,departments:['公安局','应急局','武装部'],leader:null,relations:{}},'秘书帮':{power:0.05,departments:['党委办','政府办','组织部'],leader:null,relations:{}}},
 factionTension:0.2,factionBalance:0.6,
 centralPolicy:{year:1980,focus:'gdp',assessmentWeights:{gdp:0.35,environment:0.15,livelihood:0.20,stability:0.15,innovation:0.15},pressure:0.3,transferPayment:5000,specialFunds:[]},
@@ -455,7 +455,7 @@ function simulateAllOldCities(){
   updateNationStats();
 }
 
-function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}try{updateCitizenConsumption();}catch(e){console.log('消费更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*50/12;gdpAdd+=farmGdp;G.gdp=G.gdp*0.85+(gdpAdd*12)*0.15;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution-=G.pollution*0.15;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}try{triggerSuperiorInspection();assignSuperiorTask();checkSuperiorTask();updatePublicOpinion();}catch(e){}if(Math.random()<0.02&&G.publicOpinion){var crisisTopics=[['environment','污染泄漏事件'],['housing','房价暴涨风波'],['corruption','官员贪腐曝光'],['publicSafety','治安事件发酵']];var ct=crisisTopics[Math.floor(Math.random()*crisisTopics.length)];triggerPublicCrisis(ct[0],ct[1]);}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
+function monthlySettlement(){simulateAllOldCities();recordCitySnapshot();decreasePromotionCooldown();updatePersonalNeeds();updateBankSystem();if(G.citizens){var _sr=updateSocietyMonthly();}if(typeof updateGovernmentMonthly==='function'){try{updateGovernmentMonthly();}catch(e){console.log('政务更新错误',e);}try{updateCitizenConsumption();}catch(e){console.log('消费更新错误',e);}if(_sr){addLog('社会','人口变动：出生'+_sr.births+'人，死亡'+_sr.deaths+'人，失业率'+(_sr.unemploymentRate*100).toFixed(1)+'%','info');}}var gdpAdd=0;var taxAdd=0;var popAdd=0;var pollAdd=0;for(var key in G.buildingData){var bd=G.buildingData[key];var coords=key.split(',').map(Number);var x=coords[0],y=coords[1];var type=G.grid[y]?.[x];if(!bd||!bd.level)continue;var lv=bd.level;var base=getBuildingBase(type);if(!base)continue;var mult=[1,1,1.8,2.8,4,5.5][lv]||1;gdpAdd+=(base.gdp||0)*mult/12;taxAdd+=(base.tax||0)*mult/12;popAdd+=(base.pop||0)*mult/12;pollAdd+=(base.pollution||0)*mult/12;}var farmGdp=G.farmland*50/12;gdpAdd+=farmGdp;G.gdp=G.gdp*0.85+(gdpAdd*12)*0.15;G.finance+=taxAdd;G.population+=Math.floor(popAdd);G.pollution+=pollAdd*0.1;G.pollution-=G.pollution*0.15;G.pollution=clamp(G.pollution,0,100);markPollutionDirty();var transfer=[1200,3000,6000,15000,30000,0][G.rank]||0;G.finance+=transfer/12;var staffCount=Math.floor(G.population*0.008);var salaryCost=staffCount*0.08/12;G.finance-=salaryCost;var threeGuarantee=G.finance*0.03;G.finance-=threeGuarantee;var policyCost=G.finance*0.02;G.finance-=policyCost;for(var i=G.debts.length-1;i>=0;i--){var d=G.debts[i];d.remaining-=d.monthly||(d.amount/d.term);if(d.remaining<=0){G.debts.splice(i,1);}else{G.finance-=(d.monthly||(d.amount/d.term));}}G.farmland=countFarmland();var ratio=getFarmlandRatio();if(ratio<0.13){G.violationMonths++;if(G.violationMonths===1){addLog('耕地','耕地比例降至13%以下，触发警告！','warn');G.superiorEval=Math.max(0,G.superiorEval-0.05);}else if(G.violationMonths>=3&&G.violationMonths<6){if(G.violationMonths%3===0){var fine=G.finance*0.05;G.finance-=fine;G.superiorEval=Math.max(0,G.superiorEval-0.1);G.satisfaction=Math.max(0,G.satisfaction-0.05);addLog('耕地','连续'+G.violationMonths+'月低于红线，罚款'+fmtMoney(fine),'danger');}}else if(G.violationMonths>=6&&G.violationMonths<12){if(G.violationMonths===6){G.superiorEval=Math.max(0,G.superiorEval-0.2);addLog('耕地','连续6月低于红线，考核不合格！','danger');}}else if(G.violationMonths>=12){G.gameOver=true;G.gameOverReason='耕地红线连续12月低于13%，被撤职查处！';addLog('耕地',''+G.gameOverReason,'danger');showGameOver();return;}}else{if(G.violationMonths>0){G.violationMonths=0;addLog('耕地','耕地已恢复至红线以上，违规记录清零','success');}}try{triggerSuperiorInspection();assignSuperiorTask();checkSuperiorTask();updatePublicOpinion();generateCrime();investigateCases();updateJudicialTrust();}catch(e){}if(Math.random()<0.02&&G.publicOpinion){var crisisTopics=[['environment','污染泄漏事件'],['housing','房价暴涨风波'],['corruption','官员贪腐曝光'],['publicSafety','治安事件发酵']];var ct=crisisTopics[Math.floor(Math.random()*crisisTopics.length)];triggerPublicCrisis(ct[0],ct[1]);}if(Math.random()<0.05)triggerRandomEvent();if(G.month%3===0)triggerInvestor();G.termYears+=1/12;
   // 发放工资
   var monthlySalary = G.personal.salary || 0.006;
   G.personal.deposit += monthlySalary;
@@ -724,6 +724,118 @@ function showOpinionPanel(){
   });
   html+='</div></div>';
   showModal('舆论媒体',html,[{text:'关闭',action:closeModal}]);
+}
+
+
+// ========== 法治与司法系统 ==========
+function generateCrime(){
+  if(!G.justice)return;
+  var j=G.justice;
+  // 犯罪率受失业率、贫富差距、满意度影响
+  var baseRate=0.015;
+  var unempFactor=(1-G.livelihood.employment/100)*0.5;
+  var giniFactor=(G.giniCoefficient||0.35-0.3)*2;
+  var satFactor=(0.6-G.satisfaction)*0.3;
+  var crimeProb=baseRate+unempFactor+giniFactor+satFactor;
+  crimeProb=Math.max(0.005,Math.min(0.08,crimeProb));
+  j.crimeRate=crimeProb;
+  if(Math.random()<crimeProb*3){
+    var types=['盗窃','诈骗','斗殴','经济犯罪','寻衅滋事'];
+    var type=types[Math.floor(Math.random()*types.length)];
+    var severity=0.2+Math.random()*0.6;
+    var newCase={
+      id:'CASE'+Date.now()+Math.floor(Math.random()*1000),
+      type:type,
+      status:'侦查中',
+      severity:severity,
+      year:G.year,
+      month:G.month,
+      publicAttention:severity*0.8+Math.random()*0.2,
+      monthsInvestigating:0
+    };
+    j.cases.push(newCase);
+    j.totalCases++;
+    G.satisfaction=clamp(G.satisfaction-0.002*severity,0,1);
+    G.securityIndex=clamp((G.securityIndex||50)-severity*2,0,100);
+    if(severity>0.7){
+      addLog('法治','发生'+type+'案件（严重程度'+(severity*100).toFixed(0)+'%），治安指数下降','warn');
+    }
+  }
+}
+
+function investigateCases(){
+  if(!G.justice)return;
+  var j=G.justice;
+  var policeEffort=0.3+j.policeBudget/100;
+  var techFactor=(G.educationIndex||30)/100;
+  j.cases.forEach(function(cs){
+    if(cs.status!=='侦查中')return;
+    cs.monthsInvestigating++;
+    var successProb=Math.min(0.4,policeEffort*0.3+techFactor*0.2);
+    if(cs.monthsInvestigating>6)successProb*=0.5;
+    if(Math.random()<successProb){
+      cs.status='已破案';
+      cs.clearedMonth=G.month;
+      j.clearedCases++;
+      j.clearanceRate=j.clearedCases/Math.max(1,j.totalCases);
+      G.securityIndex=clamp((G.securityIndex||50)+1,0,100);
+      if(cs.severity>0.5){
+        addLog('法治','案件'+cs.id+'（'+cs.type+'）告破，治安指数+1','success');
+      }
+    }
+  });
+  // 清理超过24个月的旧案件
+  j.cases=j.cases.filter(function(cs){return cs.monthsInvestigating<24||cs.status==='已破案';});
+  if(j.cases.length>50)j.cases=j.cases.slice(-50);
+}
+
+function updateJudicialTrust(){
+  if(!G.justice)return;
+  var j=G.justice;
+  // 司法信任受破案率、犯罪率、满意度影响
+  var target=0.3+j.clearanceRate*0.4+(1-j.crimeRate*20)*0.2+G.satisfaction*0.1;
+  target=clamp(target,0,1);
+  j.judicialTrust=j.judicialTrust*0.9+target*0.1;
+  // 司法信任影响满意度
+  G.satisfaction=clamp(G.satisfaction+(j.judicialTrust-0.5)*0.005,0,1);
+}
+
+function increasePoliceBudget(){
+  if(!G.justice)return;
+  if(G.finance<50){addLog('法治','财政不足，无法增加警力投入','warn');return;}
+  G.finance-=50;
+  G.justice.policeBudget=Math.min(100,G.justice.policeBudget+10);
+  G.securityIndex=clamp((G.securityIndex||50)+2,0,100);
+  addLog('法治','增加警力投入50万，破案能力提升，治安指数+2','success');
+}
+
+function showJusticePanel(){
+  var j=G.justice;
+  if(!j)return;
+  var html='<div style="font-size:13px;line-height:1.8;">';
+  html+='<div style="background:linear-gradient(135deg,#1c1c1e,#2c2c2e);border-radius:12px;padding:14px;margin-bottom:10px;color:#fff;">';
+  html+='<div style="font-size:16px;font-weight:700;">法治与司法</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">';
+  html+='<div><div style="font-size:11px;opacity:0.7;">犯罪率</div><div style="font-size:18px;font-weight:600;">'+(j.crimeRate*100).toFixed(1)+'%</div></div>';
+  html+='<div><div style="font-size:11px;opacity:0.7;">破案率</div><div style="font-size:18px;font-weight:600;color:#34c759;">'+(j.clearanceRate*100).toFixed(1)+'%</div></div>';
+  html+='<div><div style="font-size:11px;opacity:0.7;">司法信任</div><div style="font-size:18px;font-weight:600;color:#007aff;">'+(j.judicialTrust*100).toFixed(0)+'%</div></div>';
+  html+='<div><div style="font-size:11px;opacity:0.7;">累计案件</div><div style="font-size:18px;font-weight:600;">'+j.totalCases+'件</div></div>';
+  html+='</div></div>';
+  html+='<div style="background:#fff;border-radius:10px;padding:12px;margin-bottom:8px;">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#8e8e93;">警力投入</span><strong>'+j.policeBudget+'点</strong></div>';
+  html+='<button onclick="increasePoliceBudget();closeModal();" style="width:100%;margin-top:8px;padding:10px;border:none;border-radius:8px;background:#007aff;color:#fff;font-size:13px;cursor:pointer;">增加警力投入（-50万财政）</button>';
+  html+='</div>';
+  var activeCases=j.cases.filter(function(cs){return cs.status==='侦查中';});
+  if(activeCases.length>0){
+    html+='<div style="background:#fff;border-radius:10px;padding:12px;margin-bottom:8px;">';
+    html+='<div style="font-weight:600;margin-bottom:6px;">侦查中案件（'+activeCases.length+'）</div>';
+    activeCases.slice(-5).forEach(function(cs){
+      html+='<div style="font-size:12px;padding:4px 0;border-bottom:0.5px solid #e5e5ea;"><span style="color:'+(cs.severity>0.5?'#e74c5e':'#ff9500')+';font-weight:600;">'+cs.type+'</span> · 侦查'+cs.monthsInvestigating+'月 · 严重度'+(cs.severity*100).toFixed(0)+'%</div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  showModal('法治司法',html,[{text:'关闭',action:closeModal}]);
 }
 
 function updateRelationships(){var rel=G.relationships;rel.superior.relation=Math.max(0,rel.superior.relation-2);rel.superior.trust=Math.max(0,rel.superior.trust-1);rel.superior2.relation=Math.max(0,rel.superior2.relation-3);rel.colleagues.forEach(function(c){c.relation=Math.max(0,c.relation-2);c.trust=Math.max(0,c.trust-1);});rel.subordinates.forEach(function(s){s.relation=Math.max(0,s.relation-1);if(s.loyal)s.trust=Math.min(100,s.trust+1);});if(G.superiorEval>0.7){rel.superior.relation=Math.min(100,rel.superior.relation+3);rel.superior.trust=Math.min(100,rel.superior.trust+2);}if(G.personal.corruptionRisk>50){rel.colleagues.forEach(function(c){if(Math.random()<0.3)c.hostile=true;});}}
