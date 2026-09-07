@@ -1926,6 +1926,224 @@ function issueDebt(amount,term){
   return true;
 }
 
+// ========== 第三批：派系博弈系统 ==========
+function initFactions(){
+  if(!G.factions){
+    G.factions={
+      '本土派':{power:0.35,departments:['住建局','交通局','水利局','农业局'],leader:null,relations:{}},
+      '外来派':{power:0.25,departments:['发改委','商务局','科技局'],leader:null,relations:{}},
+      '学院派':{power:0.20,departments:['教育局','卫生局','人社局'],leader:null,relations:{}},
+      '军旅派':{power:0.15,departments:['公安局','应急局','武装部'],leader:null,relations:{}},
+      '秘书帮':{power:0.05,departments:['党委办','政府办','组织部'],leader:null,relations:{}}
+    };
+  }
+  if(!G.factionTension)G.factionTension=0.2;
+  if(!G.factionBalance)G.factionBalance=0.6;
+  // 补全干部派系字段
+  if(G.cadres){
+    G.cadres.forEach(function(c){
+      if(!c.faction||c.faction==='无派系')c.faction=['本土派','外来派','学院派','军旅派','秘书帮'][Math.floor(Math.random()*5)];
+      if(c.factionLoyalty===undefined)c.factionLoyalty=0.5+Math.random()*0.3;
+      if(!c.allies)c.allies=[];
+      if(!c.rivals)c.rivals=[];
+    });
+  }
+  // 分配派系领袖
+  for(var fname in G.factions){
+    var leaders=G.cadres?G.cadres.filter(function(c){return c.faction===fname&&c.rank>=3;}):[];
+    if(leaders.length>0){
+      leaders.sort(function(a,b){return b.rank-a.rank;});
+      G.factions[fname].leader=leaders[0].id;
+    }
+  }
+}
+
+function updateFactionPower(){
+  if(!G.factions||!G.cadres)return;
+  for(var fname in G.factions){
+    var members=G.cadres.filter(function(c){return c.faction===fname;});
+    var power=members.length*0.01;
+    members.forEach(function(c){
+      var r=parseFloat(c.rank)||0;
+      var l=parseFloat(c.loyalty)||0;
+      power+=r*0.02;
+      power+=l*0.005;
+    });
+    if(isNaN(power)||!isFinite(power))power=0.1;
+    G.factions[fname].power=Math.min(1,Math.max(0.01,power));
+  }
+  // 派系关系演变
+  var fnames=Object.keys(G.factions);
+  for(var i=0;i<fnames.length;i++){
+    for(var j=i+1;j<fnames.length;j++){
+      var f1=fnames[i],f2=fnames[j];
+      if(!G.factions[f1].relations)G.factions[f1].relations={};
+      if(!G.factions[f2].relations)G.factions[f2].relations={};
+      var current=G.factions[f1].relations[f2]||0;
+      var powerDiff=G.factions[f1].power-G.factions[f2].power;
+      var tension=(1-Math.abs(powerDiff))*0.5;
+      current+=(tension*0.02-0.01);
+      current=clamp(current,-1,1);
+      G.factions[f1].relations[f2]=current;
+      G.factions[f2].relations[f1]=current;
+    }
+  }
+  // 派系紧张度
+  var totalTension=0,pairCount=0;
+  for(var fn in G.factions){
+    for(var other in G.factions[fn].relations){
+      totalTension+=Math.abs(G.factions[fn].relations[other]);
+      pairCount++;
+    }
+  }
+  G.factionTension=(pairCount>0&&!isNaN(totalTension/pairCount))?totalTension/pairCount:0.2;
+  // 派系平衡度
+  var powers=Object.values(G.factions).map(function(f){return f.power;});
+  var avg=powers.reduce(function(a,b){return a+b;},0)/powers.length;
+  var variance=powers.reduce(function(a,b){return a+Math.pow(b-avg,2);},0)/powers.length;
+  G.factionBalance=(!isNaN(variance))?Math.max(0,1-Math.sqrt(variance)*3):0.6;
+}
+
+function getFactionSupport(cadreId,position){
+  var cadre=G.cadres?G.cadres.find(function(c){return c.id===cadreId;}):null;
+  if(!cadre)return 0;
+  var faction=G.factions?G.factions[cadre.faction]:null;
+  if(!faction)return 0;
+  var support=faction.power*(cadre.factionLoyalty||0.5);
+  // 跨派系任命
+  var deptFaction=null;
+  for(var fname in G.factions){
+    if(G.factions[fname].departments.indexOf(position)>=0){
+      deptFaction=fname;break;
+    }
+  }
+  if(deptFaction&&deptFaction!==cadre.faction){
+    var relation=G.factions[deptFaction].relations[cadre.faction]||0;
+    support*=(1+relation*0.3);
+  }
+  return clamp(support,0,1);
+}
+
+// 增强版人事任命（带派系支持度检查）
+function appointCadreWithFaction(cadreId,newPosition,newRank){
+  var c=G.cadres?G.cadres.find(function(x){return x.id===cadreId;}):null;
+  if(!c)return{success:false,msg:'干部不存在'};
+  var support=getFactionSupport(cadreId,newPosition);
+  if(support<0.3){
+    return{success:false,msg:'派系支持不足（需要30%，当前'+Math.round(support*100)+'%）'};
+  }
+  // 执行任命
+  if(newRank>c.rank){
+    c.rank=newRank;
+    c.factionLoyalty=clamp((c.factionLoyalty||0.5)+0.1,0,1);
+    c.achievements.push(G.year+'年提拔为'+newPosition);
+    addLog('人事',c.name+'提拔为'+newPosition+'（派系支持'+Math.round(support*100)+'%）','success');
+  }else if(newRank<c.rank){
+    c.rank=newRank;
+    c.factionLoyalty=clamp((c.factionLoyalty||0.5)-0.15,0,1);
+    c.disciplineRecord.push(G.year+'年降职为'+newPosition);
+    addLog('人事',c.name+'降职为'+newPosition,'warn');
+  }else{
+    c.factionLoyalty=clamp((c.factionLoyalty||0.5)+0.05,0,1);
+    addLog('人事',c.name+'平调至'+newPosition,'info');
+  }
+  c.position=newPosition;
+  c.department=newPosition.replace('局长','').replace('主任','');
+  c.yearsInPosition=0;
+  updateFactionPower();
+  return{success:true,support:support};
+}
+
+// ========== 第三批：央地关系与年度考核 ==========
+function getAssessmentTarget(key){
+  var baseTargets={
+    gdp:50000+G.rank*20000,
+    environment:50+G.rank*5,
+    livelihood:40+G.rank*4,
+    stability:70,
+    innovation:20+G.rank*5
+  };
+  var focus=G.centralPolicy?G.centralPolicy.focus:'gdp';
+  if(focus===key)return baseTargets[key]*1.2;
+  return baseTargets[key];
+}
+
+function getActualValue(key){
+  switch(key){
+    case 'gdp':return G.gdp;
+    case 'environment':return 100-G.pollution;
+    case 'livelihood':return G.satisfaction*100;
+    case 'stability':return 100-(G.socialTension||0.2)*100;
+    case 'innovation':return G.educationIndex*0.5+(G.techIndex||0)*0.5;
+    default:return 50;
+  }
+}
+
+function runAnnualAssessment(){
+  if(!G.centralPolicy)G.centralPolicy={focus:'gdp',assessmentWeights:{gdp:0.35,environment:0.15,livelihood:0.20,stability:0.15,innovation:0.15}};
+  var weights=G.centralPolicy.assessmentWeights;
+  var totalScore=0;
+  var details=[];
+  for(var key in weights){
+    var target=getAssessmentTarget(key);
+    var actual=getActualValue(key);
+    var ratio=Math.min(1.2,actual/Math.max(1,target));
+    var score=weights[key]*ratio*100;
+    totalScore+=score;
+    details.push({key:key,target:target,actual:actual,ratio:ratio,score:score});
+  }
+  G.annualAssessment={score:totalScore,grade:'合格',feedback:'',details:details};
+  if(totalScore>=80){
+    G.annualAssessment.grade='优秀';
+    G.superiorEval=clamp(G.superiorEval+0.05,0,1);
+    addLog('考核','年度考核优秀！得分'+Math.round(totalScore)+'，上级评价+5%','success');
+  }else if(totalScore>=60){
+    G.annualAssessment.grade='良好';
+    G.superiorEval=clamp(G.superiorEval+0.02,0,1);
+    addLog('考核','年度考核良好，得分'+Math.round(totalScore),'info');
+  }else if(totalScore>=40){
+    G.annualAssessment.grade='合格';
+    G.superiorEval=clamp(G.superiorEval-0.02,0,1);
+    addLog('考核','年度考核合格，得分'+Math.round(totalScore)+'，上级评价-2%','warn');
+  }else{
+    G.annualAssessment.grade='不合格';
+    G.superiorEval=clamp(G.superiorEval-0.08,0,1);
+    addLog('考核','年度考核不合格！得分'+Math.round(totalScore)+'，上级评价-8%','danger');
+    if(G.superiorEval<0.2){
+      G.gameOver=true;
+      G.gameOverReason='连续年度考核不合格，被调离岗位！';
+      addLog('考核',G.gameOverReason,'danger');
+      if(typeof showGameOver==='function')showGameOver();
+    }
+  }
+  // 中央政策焦点年度调整
+  var focuses=['gdp','environment','livelihood','stability','innovation'];
+  G.centralPolicy.focus=focuses[Math.floor(Math.random()*focuses.length)];
+  // 权重微调
+  var wKeys=Object.keys(G.centralPolicy.assessmentWeights);
+  var rk=wKeys[Math.floor(Math.random()*wKeys.length)];
+  G.centralPolicy.assessmentWeights[rk]=clamp(G.centralPolicy.assessmentWeights[rk]+(Math.random()-0.5)*0.05,0.05,0.5);
+  var totalW=0;
+  for(var k in G.centralPolicy.assessmentWeights)totalW+=G.centralPolicy.assessmentWeights[k];
+  for(var k2 in G.centralPolicy.assessmentWeights)G.centralPolicy.assessmentWeights[k2]/=totalW;
+  addLog('央地','中央政策焦点调整为：'+({gdp:'经济发展',environment:'环境保护',livelihood:'民生改善',stability:'社会稳定',innovation:'科技创新'}[G.centralPolicy.focus]),'info');
+}
+
+function applyForSpecialFund(project){
+  var successProb=0.3+G.superiorEval*0.3+(G.annualAssessment&&G.annualAssessment.grade==='优秀'?0.2:0);
+  var amount=50+Math.floor(Math.random()*200);
+  if(Math.random()<successProb){
+    G.finance+=amount;
+    if(!G.centralPolicy.specialFunds)G.centralPolicy.specialFunds=[];
+    G.centralPolicy.specialFunds.push({project:project,amount:amount,year:G.year});
+    addLog('央地','向上争取到专项资金'+amount+'万元用于'+project,'success');
+    return{success:true,amount:amount};
+  }else{
+    addLog('央地','向上争取'+project+'专项资金未获批','warn');
+    return{success:false};
+  }
+}
+
 function updateSocietyMonthly() {
   if (!G || !G.citizens) return;
   // 更新人口缩放系数
@@ -2193,6 +2411,10 @@ function updateSocietyMonthly() {
     });
   }
 
+  // ===== 第三批：派系与央地关系 =====
+  try{if(!G.factions||!G.factions['本土派']||!G.factions['本土派'].departments)initFactions();updateFactionPower();}catch(e){}
+  if(G.month===1){try{runAnnualAssessment();}catch(e){}}
+
   // ===== 第二批：事件链与外部冲击 =====
   try{checkExternalShocks();}catch(e){}
   if(Math.random()<0.01){
@@ -2380,6 +2602,7 @@ function initCadres() {
       G.cadres.push(createCadre(1 + Math.floor(Math.random()*2)));
     }
   }
+  try{initFactions();}catch(e){}
 }
 
 function appointCadre(cadreId, newPosition, newRank) {
