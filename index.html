@@ -360,7 +360,38 @@ function renderGovModal(){var tabs=[{id:'demand',name:'需求'},{id:'data',name:
 function switchGovTab(tab){govTab=tab;renderGovModal();}
 function renderDemandTab(){var html='';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:12px 0 8px;">产业需求</div>';html+=demandBar('商业岗位',G.commercialJobs,G.commercialJobDemand,'个');html+=demandBar('工业岗位',G.industrialJobs,G.industrialJobDemand,'个');html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">基础设施需求</div>';html+=demandBar('电力供给',G.powerSupply,G.powerDemand,'kW');html+=demandBar('供水能力',G.waterSupply,G.waterDemand,'吨');html+=demandBar('污水处理能力',G.sewageCapacity,G.sewageDemand,'吨');html+=demandBar('垃圾处理能力',G.garbageCapacity,G.garbageDemand,'吨');html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">公共服务需求</div>';html+=demandBar('教育资源',G.educationIndex*10,1000,'学位');html+=demandBar('医疗资源',G.medicalIndex*10,1000,'床位');var unmet=[];if(G.commercialJobs<G.commercialJobDemand)unmet.push('商业岗位');if(G.industrialJobs<G.industrialJobDemand)unmet.push('工业岗位');if(G.powerSupply<G.powerDemand)unmet.push('电力供给');if(G.waterSupply<G.waterDemand)unmet.push('供水能力');if(G.sewageCapacity<G.sewageDemand)unmet.push('污水处理');if(G.garbageCapacity<G.garbageDemand)unmet.push('垃圾处理');if(unmet.length>0){html+='<div style="margin-top:16px;padding:12px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;"><div style="font-weight:600;color:#92400e;">城市需求未满足</div><div style="font-size:13px;color:#78350f;margin-top:4px;">以下供给不足：'+unmet.join('、')+'<br>请增加对应类型的建筑以提升市民满意度。</div></div>';}else{html+='<div style="margin-top:16px;padding:12px;background:#d1fae5;border-radius:8px;border-left:4px solid #10b981;"><div style="font-weight:600;color:#065f46;">所有需求已满足</div><div style="font-size:13px;color:#047857;margin-top:4px;">城市各项基础设施和公共服务供给充足，市民满意度较高。</div></div>';}return html;}
 function demandBar(name,supply,demand,unit){var ratio=Math.min(100,(supply/demand)*100);var status=supply>=demand?'充足':(supply>=demand*0.7?'不足':'严重不足');var color=supply>=demand?'#10b981':(supply>=demand*0.7?'#f59e0b':'#ef4444');return '<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:14px;font-weight:500;color:#111827;">'+name+'</span><span style="font-size:13px;font-weight:600;color:'+color+';">'+status+'</span></div><div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:4px;"><div style="height:100%;width:'+ratio+'%;background:'+color+';border-radius:4px;transition:width 0.3s;"></div></div><div style="font-size:12px;color:#6b7280;">总需求: '+fmtNum(demand)+' '+unit+' / 当前供给: '+fmtNum(supply)+' '+unit+'</div></div>';}
-function renderDataTab(){var html='';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:12px 0 8px;">社会福利</div>';html+=indexBar('教育指数',G.educationIndex,'#7c3aed');html+=indexBar('医疗指数',G.medicalIndex,'#dc2626');html+=indexBar('治安指数',G.securityIndex,'#b45309');html+=indexBar('市民满意度',Math.round(G.satisfaction*100),'#059669');html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">环境质量</div>';var aqiLevel=G.airQuality<=50?'优':(G.airQuality<=100?'良':(G.airQuality<=150?'轻度污染':'中度污染'));var aqiColor=G.airQuality<=50?'#10b981':(G.airQuality<=100?'#84cc16':(G.airQuality<=150?'#f59e0b':'#ef4444'));html+=indexBar('空气质量 (GB3095)',Math.round(G.airQuality),aqiColor,aqiLevel);var waterLevel=G.waterQuality>=90?'I类':(G.waterQuality>=80?'II类':(G.waterQuality>=70?'III类':'IV类'));html+=indexBar('水质 (GB3838)',Math.round(G.waterQuality),'#0ea5e9',waterLevel);html+=indexBar('绿化覆盖率',Math.round(G.greenCoverage),'#22c55e','%');html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">噪声水平</span><span style="font-size:14px;font-weight:600;color:#059669;">'+G.noiseLevel+'dB</span></div>';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">耕地保护</div>';var farmlandRatio=(G.farmland/2500*100).toFixed(1);html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:14px;color:#111827;">耕地面积</span><span style="font-size:14px;font-weight:600;color:#059669;">'+G.farmland+'格 / 红线375格</span></div><div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:100%;width:'+Math.min(100,G.farmland/375*100)+'%;background:#059669;"></div></div></div>';html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">耕地红线比例</span><span style="font-size:14px;font-weight:600;color:#111827;">'+farmlandRatio+'%</span></div>';html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">违规月数</span><span style="font-size:14px;font-weight:600;color:'+(G.violationMonths>0?'#ef4444':'#059669')+';">'+G.violationMonths+'月</span></div>';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">政治指标</div>';html+=indexBar('政治声誉',Math.round(G.politicalReputation),'#dc2626');html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">任内政绩</span><span style="font-size:14px;font-weight:600;color:#111827;">'+fmtNum(G.performance)+'</span></div>';html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">私人账户</span><span style="font-size:14px;font-weight:600;color:#b45309;">¥'+fmtNum(G.personalAccount)+'万</span></div>';return html;}
+function renderDataTab(){var html='';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:12px 0 8px;">社会福利</div>';html+=indexBar('教育指数',G.educationIndex,'#7c3aed');html+=indexBar('医疗指数',G.medicalIndex,'#dc2626');html+=indexBar('治安指数',G.securityIndex,'#b45309');html+=indexBar('市民满意度',Math.round(G.satisfaction*100),'#059669');html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">环境质量</div>';var aqiLevel=G.airQuality<=50?'优':(G.airQuality<=100?'良':(G.airQuality<=150?'轻度污染':'中度污染'));var aqiColor=G.airQuality<=50?'#10b981':(G.airQuality<=100?'#84cc16':(G.airQuality<=150?'#f59e0b':'#ef4444'));html+=indexBar('空气质量 (GB3095)',Math.round(G.airQuality),aqiColor,aqiLevel);var waterLevel=G.waterQuality>=90?'I类':(G.waterQuality>=80?'II类':(G.waterQuality>=70?'III类':'IV类'));html+=indexBar('水质 (GB3838)',Math.round(G.waterQuality),'#0ea5e9',waterLevel);html+=indexBar('绿化覆盖率',Math.round(G.greenCoverage),'#22c55e','%');html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">噪声水平</span><span style="font-size:14px;font-weight:600;color:#059669;">'+G.noiseLevel+'dB</span></div>';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">耕地保护</div>';var farmlandRatio=(G.farmland/2500*100).toFixed(1);html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:14px;color:#111827;">耕地面积</span><span style="font-size:14px;font-weight:600;color:#059669;">'+G.farmland+'格 / 红线375格</span></div><div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:100%;width:'+Math.min(100,G.farmland/375*100)+'%;background:#059669;"></div></div></div>';html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">耕地红线比例</span><span style="font-size:14px;font-weight:600;color:#111827;">'+farmlandRatio+'%</span></div>';html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">违规月数</span><span style="font-size:14px;font-weight:600;color:'+(G.violationMonths>0?'#ef4444':'#059669')+';">'+G.violationMonths+'月</span></div>';html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">政治指标</div>';html+=indexBar('政治声誉',Math.round(G.politicalReputation),'#dc2626');html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">任内政绩</span><span style="font-size:14px;font-weight:600;color:#111827;">'+fmtNum(G.performance)+'</span></div>';html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;"><span style="font-size:14px;color:#111827;">私人账户</span><span style="font-size:14px;font-weight:600;color:#b45309;">¥'+fmtNum(G.personalAccount)+'万</span></div>';
+// 住房市场
+if(G.housing){
+html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">住房市场</div>';
+html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#6b7280;">平均房价</span><span style="font-size:14px;font-weight:600;color:#8b5cf6;">'+Math.round(G.housing.averagePrice)+'元/平</span></div>';
+html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#6b7280;">房价收入比</span><span style="font-size:14px;font-weight:600;color:'+(G.housing.priceIncomeRatio>8?'#dc2626':G.housing.priceIncomeRatio>5?'#f59e0b':'#16a34a')+';">'+G.housing.priceIncomeRatio.toFixed(1)+'</span></div>';
+html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#6b7280;">空置率</span><span style="font-size:14px;font-weight:600;">'+(G.housing.vacancyRate*100).toFixed(1)+'%</span></div>';
+html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#6b7280;">累计土地收入</span><span style="font-size:14px;font-weight:600;color:#059669;">'+fmtNum(G.housing.landRevenue||0)+'万</span></div></div>';
+}
+// 财政债务
+if(G.debt){
+html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">地方债务</div>';
+html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#6b7280;">债务余额</span><span style="font-size:14px;font-weight:600;color:'+(G.debt.balance>G.finance*10?'#dc2626':'#111827')+';">'+fmtNum(G.debt.balance)+'万</span></div>';
+html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;color:#6b7280;">信用评级</span><span style="font-size:14px;font-weight:600;color:'+(G.debt.creditRating==='AAA'||G.debt.creditRating==='AA'?'#16a34a':G.debt.creditRating==='A'?'#f59e0b':'#dc2626')+';">'+G.debt.creditRating+'</span></div>';
+html+='<div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#6b7280;">融资利率</span><span style="font-size:14px;font-weight:600;">'+(G.debt.interestRate*100).toFixed(1)+'%</span></div></div>';
+}
+// 派系力量
+if(G.factions){
+html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">派系力量</div>';
+var factionColors={'本土派':'#3b82f6','外来派':'#10b981','学院派':'#8b5cf6','军旅派':'#ef4444','秘书帮':'#f59e0b'};
+for(var fname in G.factions){
+  var fp=G.factions[fname].power||0;
+  html+='<div style="display:flex;align-items:center;padding:4px 0;"><span style="font-size:12px;width:50px;color:#374151;">'+fname+'</span><div style="flex:1;margin:0 8px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="width:'+Math.min(100,fp*100)+'%;height:100%;background:'+(factionColors[fname]||'#6b7280')+';"></div></div><span style="font-size:12px;width:35px;text-align:right;color:#6b7280;">'+Math.round(fp*100)+'%</span></div>';
+}
+html+='<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;color:#6b7280;"><span>派系紧张度</span><span style="color:'+(G.factionTension>0.5?'#dc2626':'#059669')+';">'+(G.factionTension*100).toFixed(0)+'%</span></div>';
+}
+// 年度考核
+if(G.annualAssessment&&G.annualAssessment.grade){
+html+='<div style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 8px;">年度考核</div>';
+html+='<div style="background:linear-gradient(135deg,'+(G.annualAssessment.grade==='优秀'?'#10b981,#34d399':G.annualAssessment.grade==='良好'?'#3b82f6,#60a5fa':G.annualAssessment.grade==='合格'?'#f59e0b,#fbbf24':'#ef4444,#f87171')+');border-radius:8px;padding:12px;color:#fff;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;opacity:0.9;">考核得分</span><span style="font-size:20px;font-weight:700;">'+Math.round(G.annualAssessment.score)+'分</span></div><div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:13px;opacity:0.9;">考核等级</span><span style="font-size:16px;font-weight:600;">'+G.annualAssessment.grade+'</span></div></div>';
+}
+return html;}
 function indexBar(name,value,color,suffix){var display=suffix?value+(suffix==='%'?'%':' ('+suffix+')'):value+'/100';return '<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:14px;color:#111827;">'+name+'</span><span style="font-size:14px;font-weight:600;color:'+color+';">'+display+'</span></div><div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;"><div style="height:100%;width:'+Math.min(100,value)+'%;background:'+color+';border-radius:4px;"></div></div></div>';}
 function renderPolicyTab(){var html='<div style="font-size:15px;font-weight:600;color:#111827;margin:12px 0 8px;"> 现行政策</div>';var policies=[{name:'房产税率',value:(G.policy.taxProperty*100).toFixed(1)+'%'},{name:'营业税率',value:(G.policy.taxBusiness*100).toFixed(1)+'%'},{name:'个人所得税率',value:(G.policy.taxIncome*100).toFixed(1)+'%'},{name:'教育投入比例',value:G.policy.eduRatio.toFixed(1)+'x'},{name:'医疗投入比例',value:G.policy.healthRatio.toFixed(1)+'x'},{name:'基础设施投入',value:G.policy.infraRatio.toFixed(1)+'x'},{name:'社保覆盖率',value:(G.policy.socialCoverage*100).toFixed(0)+'%'},{name:'医保报销比例',value:(G.policy.medicalReimb*100).toFixed(0)+'%'},{name:'养老金替代率',value:(G.policy.pension*100).toFixed(0)+'%'},{name:'环保监管强度',value:G.policy.envSupervision+'级'}];policies.forEach(function(p){html+='<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;"><span style="font-size:13px;color:#374151;">'+p.name+'</span><span style="font-size:13px;font-weight:600;color:#2563eb;">'+p.value+'</span></div>';});html+='<div style="margin-top:12px;padding:10px;background:#eff6ff;border-radius:8px;font-size:12px;color:#1e40af;"> 提示：政策调整将影响财政收入、市民满意度和各项指数。合理的政策组合是城市治理的关键。</div>';return html;}
 function renderEventTab(){var html='<div style="font-size:15px;font-weight:600;color:#111827;margin:12px 0 8px;"> 历史事件 (改革开放进程)</div>';var events=getHistoricalEvents();events.forEach(function(e){var triggered=G.triggeredEvents.includes(e.id);var canTrigger=G.year>=e.year&&!triggered;html+='<div style="background:'+(triggered?'#f0fdf4':(canTrigger?'#fef3c7':'#f9fafb'))+';border-radius:8px;padding:12px;margin-bottom:8px;border-left:4px solid '+(triggered?'#10b981':(canTrigger?'#f59e0b':'#d1d5db'))+';">';html+='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:600;color:#111827;">'+e.year+'年 '+e.name+'</span>';html+='<span style="font-size:12px;padding:2px 8px;border-radius:4px;background:'+(triggered?'#d1fae5':(canTrigger?'#fde68a':'#e5e7eb'))+';color:'+(triggered?'#065f46':(canTrigger?'#92400e':'#6b7280'))+';">'+(triggered?'已发生':(canTrigger?'可触发':'未到时间'))+'</span></div>';html+='<div style="font-size:13px;color:#4b5563;margin-top:6px;">'+e.desc+'</div>';if(canTrigger){html+='<button onclick="triggerHistoricalEvent(\''+e.id+'\')" style="margin-top:8px;padding:6px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;">触发事件</button>';}html+='</div>';});return html;}
@@ -3159,6 +3190,55 @@ function buildAIStateSummary() {
 }
 
 // 构建AI决策提示词
+// ========== 第四批：AI策略系统 ==========
+var AI_STRATEGIES = {
+  balanced: {name:'均衡发展型',weights:{gdp:0.25,livelihood:0.25,environment:0.20,stability:0.15,innovation:0.15},prefBuild:[3,6,22,27,4,5],prefPolicy:['livelihood','env_protect','business_opt'],prefProject:[1,2,3,6],riskTolerance:0.3},
+  gdp: {name:'GDP优先型',weights:{gdp:0.50,livelihood:0.10,environment:0.10,stability:0.15,innovation:0.15},prefBuild:[5,4,8,10,36],prefPolicy:['tax_break','infra_invest','industry_upgrade'],prefProject:[0,4,5,8],riskTolerance:0.5},
+  livelihood: {name:'民生优先型',weights:{gdp:0.15,livelihood:0.50,environment:0.15,stability:0.10,innovation:0.10},prefBuild:[22,27,21,3,34],prefPolicy:['livelihood','housing_subsidy','talent_intro'],prefProject:[1,2,6],riskTolerance:0.2},
+  stable: {name:'稳健保守型',weights:{gdp:0.20,livelihood:0.20,environment:0.20,stability:0.35,innovation:0.05},prefBuild:[3,6,22,28,29],prefPolicy:['business_opt','env_protect'],prefProject:[1,2,3],riskTolerance:0.1},
+  aggressive: {name:'激进创新型',weights:{gdp:0.30,livelihood:0.10,environment:0.10,stability:0.10,innovation:0.40},prefBuild:[10,32,38,5],prefPolicy:['industry_upgrade','tax_break','talent_intro'],prefProject:[5,8,9],riskTolerance:0.7},
+  learning: {name:'学习型',weights:null,prefBuild:[],prefPolicy:[],prefProject:[],riskTolerance:0.4,learningRate:0.1}
+};
+
+function selectAIStrategy(){
+  if(AI_STATE.currentStrategy==='learning')return 'learning';
+  var scores={};
+  for(var sid in AI_STRATEGIES){
+    if(sid==='learning')continue;
+    var s=AI_STRATEGIES[sid];
+    var score=0;
+    if(G.gdp<30000)score+=s.weights.gdp*2;
+    if(G.satisfaction<0.4)score+=s.weights.livelihood*3;
+    if(G.pollution>50)score+=s.weights.environment*3;
+    if((G.socialTension||0.2)>0.5)score+=s.weights.stability*3;
+    if(G.educationIndex<30)score+=s.weights.innovation*2;
+    if(G.rank<=1)score+=s.weights.gdp*1.5;
+    if(G.rank>=4)score+=s.weights.innovation*2;
+    scores[sid]=score;
+  }
+  var best=null,bestScore=-Infinity;
+  for(var sid2 in scores){
+    if(scores[sid2]>bestScore){bestScore=scores[sid2];best=sid2;}
+  }
+  if(Math.random()<0.2){
+    var keys=Object.keys(scores);
+    best=keys[Math.floor(Math.random()*keys.length)];
+  }
+  return best||'balanced';
+}
+
+function getAIPrefs(){
+  var strategy=AI_STATE.currentStrategy||'balanced';
+  var s=AI_STRATEGIES[strategy];
+  if(!s)s=AI_STRATEGIES.balanced;
+  return {
+    prefBuild:s.prefBuild||[],
+    prefPolicy:s.prefPolicy||[],
+    prefProject:s.prefProject||[],
+    riskTolerance:s.riskTolerance||0.3
+  };
+}
+
 function buildAIPrompt() {
   var recentLogs = G.logs ? G.logs.slice(0, 10).map(function(l){return '['+l.time+']'+l.msg;}).join('\n') : '';
   var memory = AI_STATE.memory ? AI_STATE.memory.slice(-5).map(function(m){return '- '+m;}).join('\n') : '暂无';
@@ -3178,6 +3258,9 @@ ${buildAIStateSummary()}
 
 # 近期事件
 ${recentLogs}
+
+# 当前AI策略
+${(function(){var strat=AI_STATE.currentStrategy||'balanced';var s=AI_STRATEGIES[strat]||AI_STRATEGIES.balanced;var prefs=getAIPrefs();return '策略风格：'+s.name+'\n偏好建筑：'+(prefs.prefBuild.length>0?prefs.prefBuild.join(', '):'无')+'\n偏好政策：'+(prefs.prefPolicy.length>0?prefs.prefPolicy.join(', '):'无')+'\n风险承受：'+Math.round(prefs.riskTolerance*100)+'%';})()}
 
 # 你的经验记忆（之前总结的教训）
 ${memory}
@@ -3603,6 +3686,16 @@ function getAIDecision(callback) {
 // AI单步决策
 function aiStep() {
   if (!AI_STATE.running || AI_STATE.paused) return;
+  // 每12轮选择一次策略
+  if(!AI_STATE.decisionCount||AI_STATE.decisionCount%12===0){
+    try{
+      var newStrategy=selectAIStrategy();
+      if(newStrategy!==AI_STATE.currentStrategy){
+        AI_STATE.currentStrategy=newStrategy;
+        addLog('AI','AI策略切换为：'+(AI_STRATEGIES[newStrategy]?AI_STRATEGIES[newStrategy].name:newStrategy),'info');
+      }
+    }catch(e){}
+  }
   if (G.gameOver) {
     finishAIGame();
     return;
