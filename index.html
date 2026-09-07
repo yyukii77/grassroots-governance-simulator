@@ -166,7 +166,7 @@ function openExamModal(){if(G.personal.deposit<0.005){showModal('学历考试','
 function renderExamQuestion(){var container=document.getElementById('examContainer');if(!container)return;var q=examQuestions[examCurrent];var total=examQuestions.length;var html='<div style="margin-bottom:12px;color:#8e8e93;font-size:14px;font-weight:500;">第 '+(examCurrent+1)+'/'+total+' 题</div>';html+='<div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid #e5e5ea;"><div style="font-size:16px;font-weight:600;color:#1c1c1e;line-height:1.5;margin-bottom:14px;">'+q.q+'</div><div style="display:flex;flex-direction:column;gap:8px;">';q.opts.forEach(function(opt,idx){var checked=examAnswers[examCurrent]===idx;var bgColor=checked?'#007aff':'#f2f2f7';var textColor=checked?'#fff':'#1c1c1e';var borderColor=checked?'#007aff':'#e5e5ea';html+='<div onclick="examAnswers['+examCurrent+']='+idx+';renderExamQuestion();" style="padding:12px 16px;border-radius:10px;background:'+bgColor+';color:'+textColor+';border:1px solid '+borderColor+';font-size:14px;cursor:pointer;transition:all 0.2s;">'+String.fromCharCode(65+idx)+'. '+opt+'</div>';});html+='</div></div>';html+='<div style="display:flex;gap:10px;margin-bottom:12px;"><button onclick="examPrev()" '+(examCurrent===0?'disabled style="flex:1;padding:12px;background:#f2f2f7;color:#8e8e93;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:not-allowed;"':'style="flex:1;padding:12px;background:#f2f2f7;color:#007aff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;"')+'>上一题</button><button onclick="examNext()" '+(examCurrent>=total-1?'disabled style="flex:1;padding:12px;background:#f2f2f7;color:#8e8e93;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:not-allowed;"':'style="flex:1;padding:12px;background:#007aff;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;"')+'>下一题</button></div>';html+='<div style="height:6px;background:#e5e5ea;border-radius:3px;overflow:hidden;"><div style="height:100%;background:#007aff;border-radius:3px;transition:width 0.3s;width:'+((examCurrent+1)/total*100)+'%;"></div></div>';container.innerHTML=html;}
 function examPrev(){if(examCurrent>0){examCurrent--;renderExamQuestion();}}
 function examNext(){if(examCurrent<examQuestions.length-1){examCurrent++;renderExamQuestion();}}
-function submitExam(){var unanswered=examAnswers.some(function(a){return a===-1;});if(unanswered){showModal('提示','还有题目未作答，请完成所有题目。',[{text:'继续答题',class:'',action:closeModal}]);return;}var score=0;examQuestions.forEach(function(q,i){if(examAnswers[i]===q.ans)score++;});var total=examQuestions.length;var pct=Math.round((score/total)*100);G.personal.deposit-=0.005;var edu=G.personal.education;var ability=G.personal.ability;var salary=G.personal.salary;var passed=false;if(pct>=95){edu='博士';ability=25;salary=0.018;passed=true;}else if(pct>=85){edu='硕士';ability=15;salary=0.012;passed=true;}else if(pct>=75){edu='本科';ability=5;salary=0.008;passed=true;}else if(pct>=60){edu='大专';ability=0;salary=0.006;passed=true;}else{passed=false;}if(passed&&edu!==G.personal.education){G.personal.education=edu;G.personal.ability=ability;G.personal.salary=salary;G.personal.eduScore=pct;addLog('考试','🎓 通过学历考试，获得'+edu+'学历！','success');showModal('考试结果','<div class="exam-result"><div class="score">'+pct+'分</div><div class="grade"> 获得 '+edu+' 学历！</div><div style="margin-top:8px;color:rgba(255,255,255,0.6);">执政能力 +'+ability+'，月工资 '+fmtMoney(salary)+'</div></div>',[{text:'太好了',class:'primary',action:closeModal}]);}else if(passed){showModal('考试结果','<div class="exam-result"><div class="score">'+pct+'分</div><div class="grade">已通过，当前学历 '+G.personal.education+'</div></div>',[{text:'知道了',class:'',action:closeModal}]);}else{showModal('考试结果','<div class="exam-result"><div class="score" style="color:#e74c5e;">'+pct+'分</div><div class="grade">未通过，3个月后可重考</div><div style="margin-top:8px;color:rgba(255,255,255,0.6);">需要60分以上</div></div>',[{text:'继续努力',class:'',action:closeModal}]);}renderAll();}
+function submitExam(){var unanswered=examAnswers.some(function(a){return a===-1;});if(unanswered){showModal('提示','还有题目未作答，请完成所有题目。',[{text:'继续答题',class:'',action:closeModal}]);return;}var score=0;examQuestions.forEach(function(q,i){if(examAnswers[i]===q.ans)score++;});var total=examQuestions.length;var pct=Math.round((score/total)*100);G.personal.deposit-=0.005;var edu=G.personal.education;var ability=G.personal.ability;var salary=G.personal.salary;var passed=false;if(pct>=95){edu='博士';ability=25;salary=calculateSalary(G.rank,G.year)*1.5/10000;passed=true;}else if(pct>=85){edu='硕士';ability=15;salary=calculateSalary(G.rank,G.year)*1.3/10000;passed=true;}else if(pct>=75){edu='本科';ability=5;salary=calculateSalary(G.rank,G.year)*1.1/10000;passed=true;}else if(pct>=60){edu='大专';ability=0;salary=calculateSalary(G.rank,G.year)/10000;passed=true;}else{passed=false;}if(passed&&edu!==G.personal.education){G.personal.education=edu;G.personal.ability=ability;G.personal.salary=salary;G.personal.eduScore=pct;addLog('考试','🎓 通过学历考试，获得'+edu+'学历！','success');showModal('考试结果','<div class="exam-result"><div class="score">'+pct+'分</div><div class="grade"> 获得 '+edu+' 学历！</div><div style="margin-top:8px;color:rgba(255,255,255,0.6);">执政能力 +'+ability+'，月工资 '+fmtMoney(salary)+'</div></div>',[{text:'太好了',class:'primary',action:closeModal}]);}else if(passed){showModal('考试结果','<div class="exam-result"><div class="score">'+pct+'分</div><div class="grade">已通过，当前学历 '+G.personal.education+'</div></div>',[{text:'知道了',class:'',action:closeModal}]);}else{showModal('考试结果','<div class="exam-result"><div class="score" style="color:#e74c5e;">'+pct+'分</div><div class="grade">未通过，3个月后可重考</div><div style="margin-top:8px;color:rgba(255,255,255,0.6);">需要60分以上</div></div>',[{text:'继续努力',class:'',action:closeModal}]);}renderAll();}
 
 // ---------- 消费系统 ----------
 function openConsumeModal(){var items=[{name:'刚需房',price:50,cat:'房产'},{name:'改善房',price:200,cat:'房产'},{name:'代步车',price:15,cat:'汽车'},{name:'中档车',price:40,cat:'汽车'},{name:'名表',price:5,cat:'奢侈品'},{name:'名牌包',price:3,cat:'奢侈品'},{name:'国内游',price:1,cat:'旅游'},{name:'欧洲游',price:8,cat:'旅游'},{name:'高档餐厅',price:0.2,cat:'餐饮'},{name:'米其林',price:0.5,cat:'餐饮'},{name:'高尔夫会员',price:5,cat:'娱乐'},{name:'EMBA',price:30,cat:'教育'},{name:'高端体检',price:1,cat:'医疗'},{name:'私人医生(年)',price:5,cat:'医疗'}];var catIcons={'房产':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>','汽车':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M5 17h14M5 17a2 2 0 0 1-2-2v-3l2-5h14l2 5v3a2 2 0 0 1-2 2M5 17a2 2 0 0 0 2 2M17 17a2 2 0 0 0 2-2"/></svg>','奢侈品':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>','旅游':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>','餐饮':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>','娱乐':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>','教育':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>','医疗':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>'};var html='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';items.forEach(function(item){var icon=catIcons[item.cat]||'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';html+='<div style="background:#fff;border:1px solid #e5e5ea;border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.transform=\'scale(1.03)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.1)\';" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\';" onclick="doConsume(\''+item.name+'\','+item.price+')"><div style="margin-bottom:6px;">'+icon+'</div><div style="font-weight:600;font-size:13px;color:#1c1c1e;">'+item.name+'</div><div style="color:#007aff;font-size:12px;font-weight:500;margin-top:2px;">'+fmtYuan(item.price)+'</div><div style="font-size:10px;color:#8e8e93;margin-top:2px;">'+item.cat+'</div></div>';});html+='</div>';showModal('个人消费',html,[{text:'关闭',class:'',action:closeModal}]);}
@@ -202,6 +202,12 @@ function monthlySettlement(){updateBankSystem();if(G.citizens){var _sr=updateSoc
   var termLimit=G.rank===0?3:5;if(G.termYears>=termLimit){checkPromotion();}addLog('结算',''+G.year+'年'+G.month+'月结算完成，GDP +'+fmtNum(gdpAdd)+'，税收 +'+fmtNum(taxAdd)+'，工资 +'+fmtYuan(monthlySalary),'info');}
 function annualSettlement(){
   G.age++;
+  // 工资随年份增长
+  var newSalary = calculateSalary(G.rank, G.year);
+  if (G.personal.salary * 10000 != newSalary) {
+    G.personal.salary = newSalary / 10000;
+    addLog('个人', G.year + '年工资调整为' + newSalary + '元/月（随时代增长）', 'info');
+  }
   addLog('个人','您年满'+G.age+'岁','info');
   var gdpTarget=getRankTarget(G.rank+1);var popTarget=getPopTarget(G.rank+1);var satTarget=getSatTarget(G.rank+1);var evalTarget=getEvalTarget(G.rank+1);var score=0;if(G.gdp>=gdpTarget)score++;if(G.population>=popTarget)score++;if(G.satisfaction>=satTarget)score++;if(G.superiorEval>=evalTarget)score++;if(getFarmlandRatio()>=0.13)score++;var grade=score>=5?'优秀':score>=4?'良好':score>=3?'合格':'不合格';addLog('考核',' 年度考核: '+grade+' (得分'+score+'/5)',grade==='不合格'?'danger':'success');G.performance+=score;if(grade==='不合格'){G.superiorEval=Math.max(0,G.superiorEval-0.1);}else if(grade==='优秀'){G.superiorEval=Math.min(1,G.superiorEval+0.05);G.satisfaction=Math.min(1,G.satisfaction+0.03);}G.examRecords.push({year:G.year,grade:grade,score:score});addLog('体检',' '+G.year+'年度城市体检: GDP '+fmtNum(G.gdp)+', 人口 '+fmtNum(G.population)+', 满意度 '+fmtPct(G.satisfaction),'info');
 }
@@ -654,6 +660,27 @@ function doUsePower(action){
 // ---------- 晋升弹窗 ----------
 function showPromotionModal(newRank){showModal(' 晋升喜报','<div style="text-align:center;padding:12px 0;"><div style="font-size:32px;margin-bottom:8px;"></div><div style="font-size:22px;font-weight:600;color:#007aff;">晋升为 '+newRank+'</div><div style="margin-top:12px;color:rgba(255,255,255,0.6);">工资上涨，考核目标提高</div><div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,0.4);">个人资产、股票持仓全部保留</div></div>',[{text:'继续治理',class:'primary',action:closeModal}]);}
 
+// 根据年份计算工资增长系数（参考中国实际工资增长）
+function getYearSalaryMultiplier(year) {
+  if (year <= 1980) return 1.0;
+  if (year <= 1985) return 1.0 + (year - 1980) * 0.06;   // 年增6%
+  if (year <= 1990) return 1.3 + (year - 1985) * 0.2;    // 年增20%
+  if (year <= 1995) return 2.3 + (year - 1990) * 0.5;    // 年增50%
+  if (year <= 2000) return 4.8 + (year - 1995) * 1.5;    // 年增150%
+  if (year <= 2005) return 12.3 + (year - 2000) * 3.0;   // 年增300%
+  if (year <= 2010) return 27.3 + (year - 2005) * 4.0;   // 年增400%
+  if (year <= 2015) return 47.3 + (year - 2010) * 5.0;   // 年增500%
+  if (year <= 2020) return 72.3 + (year - 2015) * 6.0;   // 年增600%
+  return 102.3 + (year - 2020) * 3.0;                     // 年增300%
+}
+
+// 根据级别和年份计算实际月薪（元）
+function calculateSalary(rank, year) {
+  var baseSalary = [60, 100, 150, 250, 400, 600, 900, 1500, 2500][rank] || 60;  // 1980年基准
+  var multiplier = getYearSalaryMultiplier(year);
+  return Math.round(baseSalary * multiplier);
+}
+
 function checkPromotion(){
   if(G.gameOver)return;
   var termLimit=G.rank===0?3:5;
@@ -663,7 +690,7 @@ function checkPromotion(){
   if(G.superiorEval>=evalThreshold&&G.gdp>=gdpThreshold&&G.rank<5){
     G.rank++;
     G.termYears=0;
-    G.salary=[60,100,150,250,400,600][G.rank]||600;
+    G.salary=calculateSalary(G.rank, G.year);
     var newRankName=G.rankNames[G.rank]||'高级干部';
     addLog('晋升','恭喜！您已晋升为'+newRankName+'，月薪'+G.salary+'元','success');
     showPromotionModal(newRankName);
@@ -702,7 +729,7 @@ function showDebugPanel(){if(!G){showModal('调试','<div>游戏未开始</div>'
 function debugApply(){if(!G)return;G.finance=parseFloat(document.getElementById('dbg-finance').value)||G.finance;G.gdp=parseFloat(document.getElementById('dbg-gdp').value)||G.gdp;G.population=parseInt(document.getElementById('dbg-pop').value)||G.population;G.satisfaction=parseFloat(document.getElementById('dbg-sat').value)/100||G.satisfaction;G.superiorEval=parseFloat(document.getElementById('dbg-eval').value)/100||G.superiorEval;G.personal.deposit=parseFloat(document.getElementById('dbg-money').value)||G.personal.deposit;renderAll();addLog('调试',' 已应用调试修改','info');}
 function debugAddMoney(){G.finance+=100000;renderAll();addLog('调试','+10亿财政','info');}
 function debugClearDebt(){G.debts=[];renderAll();addLog('调试','债务已清空','info');}
-function debugPromote(){if(G.rank<G.rankNames.length-1){G.rank++;G.termMonths=0;G.personal.salary=[0.006,0.008,0.01,0.013,0.018,0.025,0.035,0.05,0.08][G.rank]||0.006;addLog('晋升',' 调试: 晋升为'+G.rankNames[G.rank],'success');showPromotionModal(G.rankNames[G.rank]);renderAll();}}
+function debugPromote(){if(G.rank<G.rankNames.length-1){G.rank++;G.termMonths=0;G.personal.salary=calculateSalary(G.rank, G.year)/10000;addLog('晋升',' 调试: 晋升为'+G.rankNames[G.rank],'success');showPromotionModal(G.rankNames[G.rank]);renderAll();}}
 function debugNextMonth(){advanceMonth();}
 function debugRestoreFarm(){var restored=0;for(var y=0;y<50&&restored<50;y++){for(var x=0;x<50&&restored<50;x++){if(G.grid[y][x]===0){G.grid[y][x]=1;restored++;}}}G.farmland=countFarmland();G.violationMonths=0;renderAll();addLog('调试','恢复了'+restored+'格耕地','info');}
 // ---------- 开始界面 ----------
@@ -2197,10 +2224,10 @@ function executeAIAction(action) {
         // AI自动参加考试，随机得分60-100
         var examScore = 60 + Math.floor(Math.random() * 41);
         G.personal.deposit -= 0.005;
-        if (examScore >= 95) { G.personal.education='博士'; G.personal.ability=25; G.personal.salary=0.018; }
-        else if (examScore >= 85) { G.personal.education='硕士'; G.personal.ability=15; G.personal.salary=0.012; }
-        else if (examScore >= 75) { G.personal.education='本科'; G.personal.ability=5; G.personal.salary=0.008; }
-        else if (examScore >= 60) { G.personal.education='大专'; G.personal.ability=0; G.personal.salary=0.006; }
+        if (examScore >= 95) { G.personal.education='博士'; G.personal.ability=25; G.personal.salary=calculateSalary(G.rank,G.year)*1.5/10000; }
+        else if (examScore >= 85) { G.personal.education='硕士'; G.personal.ability=15; G.personal.salary=calculateSalary(G.rank,G.year)*1.3/10000; }
+        else if (examScore >= 75) { G.personal.education='本科'; G.personal.ability=5; G.personal.salary=calculateSalary(G.rank,G.year)*1.1/10000; }
+        else if (examScore >= 60) { G.personal.education='大专'; G.personal.ability=0; G.personal.salary=calculateSalary(G.rank,G.year)/10000; }
         log('参加学历考试，得分'+examScore+'，获得'+G.personal.education+'学历');
         return true;
       } else {
